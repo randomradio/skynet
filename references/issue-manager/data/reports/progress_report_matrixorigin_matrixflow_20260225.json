@@ -1,0 +1,20 @@
+{
+  "repo": "matrixorigin/matrixflow",
+  "generated_at": "2026-02-25T14:49:50.125913",
+  "by_status": {
+    "处理中": 324,
+    "待处理": 728,
+    "已关闭": 3546
+  },
+  "by_type": {
+    "feature": 1096,
+    "bug": 3162,
+    "task": 340
+  },
+  "by_priority": {
+    "P1": 3066,
+    "P0": 585,
+    "P2": 938,
+    "P3": 9
+  }
+}

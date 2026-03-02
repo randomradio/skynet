@@ -1,0 +1,10 @@
+{
+  "title": "跨项目共用Feature分析",
+  "generated_at": "2026-02-23T22:23:55.633474",
+  "summary": {
+    "total_shared_features": 0,
+    "high_risk": 0,
+    "medium_risk": 0
+  },
+  "features": []
+}

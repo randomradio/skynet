@@ -1,0 +1,16 @@
+{
+  "title": "风险汇总分析",
+  "generated_at": "2026-02-23T22:23:55.634433",
+  "summary": {
+    "total_high_priority_open": 0,
+    "total_long_time_open": 0,
+    "total_blocked": 0,
+    "total_shared_features": 0
+  },
+  "risks": {
+    "high_priority_open": [],
+    "long_time_open": [],
+    "blocked_chain": [],
+    "shared_features": []
+  }
+}

@@ -1,0 +1,806 @@
+{
+  "repo": "matrixorigin/matrixone",
+  "generated_at": "2026-02-25T14:49:55.394630",
+  "total_issues": 9011,
+  "analysis_results": {
+    "basic_stats": {
+      "total_issues": 9011,
+      "by_state": {
+        "closed": {
+          "count": 8438,
+          "percentage": 93.64
+        },
+        "open": {
+          "count": 573,
+          "percentage": 6.36
+        }
+      },
+      "by_type": {
+        "bug": {
+          "count": 6004,
+          "percentage": 66.63
+        },
+        "feature": {
+          "count": 2360,
+          "percentage": 26.19
+        },
+        "task": {
+          "count": 647,
+          "percentage": 7.18
+        }
+      },
+      "by_priority": {
+        "P0": {
+          "count": 2655,
+          "percentage": 29.46
+        },
+        "P2": {
+          "count": 2371,
+          "percentage": 26.31
+        },
+        "P1": {
+          "count": 3959,
+          "percentage": 43.94
+        },
+        "P3": {
+          "count": 26,
+          "percentage": 0.29
+        }
+      },
+      "by_status": {
+        "已关闭": {
+          "count": 8438,
+          "percentage": 93.64
+        },
+        "处理中": {
+          "count": 569,
+          "percentage": 6.31
+        },
+        "待处理": {
+          "count": 4,
+          "percentage": 0.04
+        }
+      }
+    },
+    "label_analysis": {
+      "total_unique_labels": 105,
+      "label_distribution": {
+        "kind/bug": {
+          "count": 5768,
+          "open": 211,
+          "closed": 5557,
+          "percentage": 64.01
+        },
+        "severity/s0": {
+          "count": 2674,
+          "open": 128,
+          "closed": 2546,
+          "percentage": 29.67
+        },
+        "needs-triage": {
+          "count": 2093,
+          "open": 1,
+          "closed": 2092,
+          "percentage": 23.23
+        },
+        "priority/p0": {
+          "count": 1231,
+          "open": 138,
+          "closed": 1093,
+          "percentage": 13.66
+        },
+        "kind/tech-request": {
+          "count": 1119,
+          "open": 115,
+          "closed": 1004,
+          "percentage": 12.42
+        },
+        "severity/s1": {
+          "count": 1028,
+          "open": 48,
+          "closed": 980,
+          "percentage": 11.41
+        },
+        "kind/feature": {
+          "count": 944,
+          "open": 116,
+          "closed": 828,
+          "percentage": 10.48
+        },
+        "phase/testing": {
+          "count": 937,
+          "open": 10,
+          "closed": 927,
+          "percentage": 10.4
+        },
+        "kind/subtask": {
+          "count": 512,
+          "open": 37,
+          "closed": 475,
+          "percentage": 5.68
+        },
+        "severity/s-1": {
+          "count": 491,
+          "open": 0,
+          "closed": 491,
+          "percentage": 5.45
+        },
+        "priority/p1": {
+          "count": 452,
+          "open": 68,
+          "closed": 384,
+          "percentage": 5.02
+        },
+        "bvt": {
+          "count": 399,
+          "open": 3,
+          "closed": 396,
+          "percentage": 4.43
+        },
+        "triage/accepted": {
+          "count": 350,
+          "open": 1,
+          "closed": 349,
+          "percentage": 3.88
+        },
+        "team/c2": {
+          "count": 280,
+          "open": 20,
+          "closed": 260,
+          "percentage": 3.11
+        },
+        "source/dev": {
+          "count": 234,
+          "open": 35,
+          "closed": 199,
+          "percentage": 2.6
+        },
+        "source/on-demand": {
+          "count": 231,
+          "open": 12,
+          "closed": 219,
+          "percentage": 2.56
+        },
+        "impact/1.1": {
+          "count": 168,
+          "open": 10,
+          "closed": 158,
+          "percentage": 1.86
+        },
+        "bug/ut": {
+          "count": 159,
+          "open": 1,
+          "closed": 158,
+          "percentage": 1.76
+        },
+        "priority/p-1": {
+          "count": 146,
+          "open": 13,
+          "closed": 133,
+          "percentage": 1.62
+        },
+        "area/performance": {
+          "count": 141,
+          "open": 24,
+          "closed": 117,
+          "percentage": 1.56
+        },
+        "attention/doc-influence": {
+          "count": 140,
+          "open": 11,
+          "closed": 129,
+          "percentage": 1.55
+        },
+        "kind/compatibility": {
+          "count": 122,
+          "open": 19,
+          "closed": 103,
+          "percentage": 1.35
+        },
+        "priority/p2": {
+          "count": 112,
+          "open": 10,
+          "closed": 102,
+          "percentage": 1.24
+        },
+        "ai-easy": {
+          "count": 107,
+          "open": 17,
+          "closed": 90,
+          "percentage": 1.19
+        },
+        "priority/p0.5": {
+          "count": 102,
+          "open": 17,
+          "closed": 85,
+          "percentage": 1.13
+        },
+        "kind/refactor": {
+          "count": 95,
+          "open": 10,
+          "closed": 85,
+          "percentage": 1.05
+        },
+        "to-next-release": {
+          "count": 95,
+          "open": 5,
+          "closed": 90,
+          "percentage": 1.05
+        },
+        "duplicate": {
+          "count": 91,
+          "open": 0,
+          "closed": 91,
+          "percentage": 1.01
+        },
+        "severity/s2": {
+          "count": 88,
+          "open": 4,
+          "closed": 84,
+          "percentage": 0.98
+        },
+        "good first issue": {
+          "count": 77,
+          "open": 1,
+          "closed": 76,
+          "percentage": 0.85
+        }
+      },
+      "label_categories": {
+        "Issue类型": {
+          "kind/bug": 5768,
+          "kind/tech-request": 1119,
+          "kind/feature": 944,
+          "kind/subtask": 512,
+          "kind/compatibility": 122,
+          "kind/refactor": 95,
+          "kind/documentation": 24,
+          "kind/design": 24,
+          "kind/enhancement": 15,
+          "kind/test-ci": 8,
+          "kind/question": 5
+        },
+        "功能模块": {
+          "area/performance": 141,
+          "area/built-in funtcion": 60,
+          "area/streaming": 56,
+          "area/tn": 47,
+          "area/compatibility": 24,
+          "area/partition": 24,
+          "area/memory": 23,
+          "area/cdc": 19,
+          "area/ai": 11,
+          "area/spill": 6,
+          "area/storage": 6,
+          "area/cu&stats": 6,
+          "area/stability": 5,
+          "area/observability": 4,
+          "area/occ": 4,
+          "area/mo-operator": 3,
+          "area/scalability": 1,
+          "area/time-series": 1,
+          "area/temporary table": 1,
+          "area/optimizer": 1
+        },
+        "客户": {},
+        "严重程度": {
+          "severity/s0": 2674,
+          "severity/s1": 1028,
+          "severity/s-1": 491,
+          "severity/s2": 88
+        }
+      },
+      "top_label_combinations": [
+        {
+          "labels": [
+            "kind/bug",
+            "severity/s0"
+          ],
+          "count": 948
+        },
+        {
+          "labels": [
+            "kind/bug",
+            "needs-triage"
+          ],
+          "count": 769
+        },
+        {
+          "labels": [
+            "kind/bug",
+            "phase/testing",
+            "severity/s0"
+          ],
+          "count": 423
+        },
+        {
+          "labels": [
+            "kind/bug",
+            "needs-triage",
+            "severity/s0"
+          ],
+          "count": 401
+        },
+        {
+          "labels": [
+            "kind/bug",
+            "severity/s1"
+          ],
+          "count": 333
+        },
+        {
+          "labels": [
+            "kind/bug",
+            "needs-triage",
+            "severity/s1"
+          ],
+          "count": 223
+        },
+        {
+          "labels": [
+            "kind/bug",
+            "needs-triage",
+            "severity/s-1"
+          ],
+          "count": 174
+        },
+        {
+          "labels": [
+            "kind/tech-request",
+            "priority/p0"
+          ],
+          "count": 172
+        },
+        {
+          "labels": [
+            "kind/feature",
+            "priority/p0"
+          ],
+          "count": 167
+        },
+        {
+          "labels": [
+            "kind/bug",
+            "severity/s-1"
+          ],
+          "count": 159
+        },
+        {
+          "labels": [
+            "bvt",
+            "kind/bug",
+            "triage/accepted"
+          ],
+          "count": 100
+        },
+        {
+          "labels": [
+            "kind/subtask",
+            "priority/p0"
+          ],
+          "count": 86
+        },
+        {
+          "labels": [
+            "ai-easy",
+            "kind/compatibility",
+            "priority/p0"
+          ],
+          "count": 84
+        },
+        {
+          "labels": [
+            "kind/tech-request",
+            "priority/p1"
+          ],
+          "count": 78
+        },
+        {
+          "labels": [
+            "bug/ut",
+            "kind/bug",
+            "severity/s0"
+          ],
+          "count": 78
+        }
+      ]
+    },
+    "module_analysis": {
+      "total_modules": 78,
+      "top_modules": [
+        {
+          "module": "bug",
+          "total_issues": 5458,
+          "open_issues": 206,
+          "bug_count": 5453,
+          "bug_ratio": 1.0,
+          "p0_count": 2481,
+          "avg_resolution_days": 44.4,
+          "hot_level": "high"
+        },
+        {
+          "module": "feature request",
+          "total_issues": 878,
+          "open_issues": 110,
+          "bug_count": 0,
+          "bug_ratio": 0.0,
+          "p0_count": 0,
+          "avg_resolution_days": 136.9,
+          "hot_level": "medium"
+        },
+        {
+          "module": "unknown",
+          "total_issues": 747,
+          "open_issues": 71,
+          "bug_count": 288,
+          "bug_ratio": 0.39,
+          "p0_count": 114,
+          "avg_resolution_days": 38.1,
+          "hot_level": "high"
+        },
+        {
+          "module": "tech request",
+          "total_issues": 580,
+          "open_issues": 88,
+          "bug_count": 47,
+          "bug_ratio": 0.08,
+          "p0_count": 5,
+          "avg_resolution_days": 96.0,
+          "hot_level": "medium"
+        },
+        {
+          "module": "subtask",
+          "total_issues": 518,
+          "open_issues": 38,
+          "bug_count": 36,
+          "bug_ratio": 0.07,
+          "p0_count": 6,
+          "avg_resolution_days": 114.4,
+          "hot_level": "high"
+        },
+        {
+          "module": "sql",
+          "total_issues": 421,
+          "open_issues": 27,
+          "bug_count": 259,
+          "bug_ratio": 0.62,
+          "p0_count": 76,
+          "avg_resolution_days": 80.7,
+          "hot_level": "high"
+        },
+        {
+          "module": "enhancement",
+          "total_issues": 306,
+          "open_issues": 11,
+          "bug_count": 9,
+          "bug_ratio": 0.03,
+          "p0_count": 2,
+          "avg_resolution_days": 124.5,
+          "hot_level": "medium"
+        },
+        {
+          "module": "transaction",
+          "total_issues": 201,
+          "open_issues": 12,
+          "bug_count": 138,
+          "bug_ratio": 0.69,
+          "p0_count": 80,
+          "avg_resolution_days": 78.1,
+          "hot_level": "high"
+        },
+        {
+          "module": "refactoring",
+          "total_issues": 183,
+          "open_issues": 24,
+          "bug_count": 23,
+          "bug_ratio": 0.13,
+          "p0_count": 2,
+          "avg_resolution_days": 68.8,
+          "hot_level": "medium"
+        },
+        {
+          "module": "performance",
+          "total_issues": 145,
+          "open_issues": 25,
+          "bug_count": 47,
+          "bug_ratio": 0.32,
+          "p0_count": 8,
+          "avg_resolution_days": 142.6,
+          "hot_level": "high"
+        },
+        {
+          "module": "built-in funtcion",
+          "total_issues": 60,
+          "open_issues": 0,
+          "bug_count": 1,
+          "bug_ratio": 0.02,
+          "p0_count": 0,
+          "avg_resolution_days": 101.9,
+          "hot_level": "low"
+        },
+        {
+          "module": "parser",
+          "total_issues": 59,
+          "open_issues": 7,
+          "bug_count": 27,
+          "bug_ratio": 0.46,
+          "p0_count": 4,
+          "avg_resolution_days": 92.0,
+          "hot_level": "medium"
+        },
+        {
+          "module": "streaming",
+          "total_issues": 56,
+          "open_issues": 9,
+          "bug_count": 34,
+          "bug_ratio": 0.61,
+          "p0_count": 10,
+          "avg_resolution_days": 255.1,
+          "hot_level": "high"
+        },
+        {
+          "module": "storage",
+          "total_issues": 50,
+          "open_issues": 5,
+          "bug_count": 17,
+          "bug_ratio": 0.34,
+          "p0_count": 7,
+          "avg_resolution_days": 77.0,
+          "hot_level": "medium"
+        },
+        {
+          "module": "tn",
+          "total_issues": 47,
+          "open_issues": 1,
+          "bug_count": 2,
+          "bug_ratio": 0.04,
+          "p0_count": 1,
+          "avg_resolution_days": 121.7,
+          "hot_level": "low"
+        },
+        {
+          "module": "question",
+          "total_issues": 43,
+          "open_issues": 7,
+          "bug_count": 20,
+          "bug_ratio": 0.47,
+          "p0_count": 3,
+          "avg_resolution_days": 216.9,
+          "hot_level": "medium"
+        },
+        {
+          "module": "docs",
+          "total_issues": 41,
+          "open_issues": 1,
+          "bug_count": 17,
+          "bug_ratio": 0.41,
+          "p0_count": 0,
+          "avg_resolution_days": 176.7,
+          "hot_level": "low"
+        },
+        {
+          "module": "catalog",
+          "total_issues": 24,
+          "open_issues": 0,
+          "bug_count": 7,
+          "bug_ratio": 0.29,
+          "p0_count": 5,
+          "avg_resolution_days": 66.3,
+          "hot_level": "low"
+        },
+        {
+          "module": "compatibility",
+          "total_issues": 24,
+          "open_issues": 13,
+          "bug_count": 18,
+          "bug_ratio": 0.75,
+          "p0_count": 2,
+          "avg_resolution_days": 338.5,
+          "hot_level": "medium"
+        },
+        {
+          "module": "partition",
+          "total_issues": 24,
+          "open_issues": 22,
+          "bug_count": 18,
+          "bug_ratio": 0.75,
+          "p0_count": 6,
+          "avg_resolution_days": 371.5,
+          "hot_level": "high"
+        }
+      ]
+    },
+    "hierarchy_analysis": {
+      "level_distribution": {
+        "L1": {
+          "total": 0,
+          "closed": 0,
+          "rate": 0
+        },
+        "L2": {
+          "total": 118,
+          "closed": 117,
+          "rate": 0.99
+        },
+        "L3": {
+          "total": 2567,
+          "closed": 2251,
+          "rate": 0.88
+        },
+        "L4": {
+          "total": 6326,
+          "closed": 6070,
+          "rate": 0.96
+        }
+      },
+      "orphan_issues_approx": 2475
+    },
+    "customer_analysis": {
+      "customers": [],
+      "by_customer": {}
+    },
+    "relation_analysis": {
+      "most_referenced": [
+        {
+          "issue_id": 2109377310,
+          "count": 19,
+          "issue_number": 14469,
+          "title": "[Tech Request]: Performance improvement of prepared primary key point selection "
+        },
+        {
+          "issue_id": 1808916400,
+          "count": 16,
+          "issue_number": 10729,
+          "title": "[Refactoring]: Umbrella issue of  pipeline refactor"
+        },
+        {
+          "issue_id": 2405046416,
+          "count": 13,
+          "issue_number": 17500,
+          "title": "[Tech Request]: refactor DML plan"
+        },
+        {
+          "issue_id": 1190499758,
+          "count": 12,
+          "issue_number": 2133,
+          "title": "[Refactoring]:  fix sca problems"
+        },
+        {
+          "issue_id": 1573882251,
+          "count": 11,
+          "issue_number": 7889,
+          "title": "[Refactoring]: Umbrella issue of refactor temporary table"
+        },
+        {
+          "issue_id": 1964703225,
+          "count": 11,
+          "issue_number": 12390,
+          "title": "[Tech Request]: Cleanup/Refactor session and context"
+        },
+        {
+          "issue_id": 1491119523,
+          "count": 9,
+          "issue_number": 7141,
+          "title": "[Feature Request]: Development and optimization of test frameworks and tools for"
+        },
+        {
+          "issue_id": 1559322533,
+          "count": 9,
+          "issue_number": 7717,
+          "title": "[Feature Request]: Real Impl of table partition"
+        },
+        {
+          "issue_id": 1772817322,
+          "count": 9,
+          "issue_number": 10208,
+          "title": "[Tech Request]: Storage Optimization Policy Zoo"
+        },
+        {
+          "issue_id": 1869348557,
+          "count": 9,
+          "issue_number": 11499,
+          "title": "[Feature Request]: More system metrics support"
+        },
+        {
+          "issue_id": 2332470634,
+          "count": 9,
+          "issue_number": 16617,
+          "title": "[Bug]: 1.2-dev standalone regression: sysbench  mo oom"
+        },
+        {
+          "issue_id": 1275744341,
+          "count": 8,
+          "issue_number": 3100,
+          "title": "[Enhancement]: Proposal to improve MO's CI in the v0.6 cycle "
+        },
+        {
+          "issue_id": 1433998280,
+          "count": 8,
+          "issue_number": 6209,
+          "title": "[Bug]: lots of error for bvt test with tae-cn-tae-dn running on k8s "
+        },
+        {
+          "issue_id": 1616272732,
+          "count": 8,
+          "issue_number": 8327,
+          "title": "[Bug]: The summary problem and status related to stability test"
+        },
+        {
+          "issue_id": 2043315544,
+          "count": 8,
+          "issue_number": 13516,
+          "title": "[Subtask]: implement bussiness logic of the account level backup "
+        }
+      ],
+      "blocking_chains": [
+        {
+          "chain": [
+            1699073499,
+            1699369901
+          ],
+          "length": 2,
+          "issue_numbers": [
+            9309,
+            9310
+          ]
+        },
+        {
+          "chain": [
+            1808916400,
+            2043591427
+          ],
+          "length": 2,
+          "issue_numbers": [
+            10729,
+            13524
+          ]
+        },
+        {
+          "chain": [
+            2016138749,
+            2077860362
+          ],
+          "length": 2,
+          "issue_numbers": [
+            13090,
+            14147
+          ]
+        },
+        {
+          "chain": [
+            1071874550,
+            1072211221
+          ],
+          "length": 2,
+          "issue_numbers": [
+            1293,
+            1296
+          ]
+        }
+      ],
+      "total_relations": 1771
+    },
+    "trend_analysis": {
+      "by_window": {
+        "last_7d": {
+          "new_issues": 0,
+          "closed_issues": 0,
+          "net_change": 0,
+          "avg_resolution_days": 0
+        },
+        "last_30d": {
+          "new_issues": 60,
+          "closed_issues": 108,
+          "net_change": -48,
+          "avg_resolution_days": 169.4
+        },
+        "last_90d": {
+          "new_issues": 223,
+          "closed_issues": 228,
+          "net_change": -5,
+          "avg_resolution_days": 115.8
+        }
+      }
+    }
+  }
+}

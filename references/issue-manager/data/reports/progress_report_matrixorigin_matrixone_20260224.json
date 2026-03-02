@@ -1,0 +1,19 @@
+{
+  "repo": "matrixorigin/matrixone",
+  "generated_at": "2026-02-24T03:07:37.132660",
+  "by_status": {
+    "已关闭": 47,
+    "处理中": 2
+  },
+  "by_type": {
+    "task": 38,
+    "feature": 9,
+    "bug": 2
+  },
+  "by_priority": {
+    "P3": 37,
+    "P1": 5,
+    "P0": 2,
+    "P2": 5
+  }
+}
