@@ -1,6 +1,7 @@
 import {
   bigint,
   boolean,
+  customType,
   float,
   int,
   json,
@@ -10,6 +11,27 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/mysql-core";
+
+// MatrixOne transmits boolean columns as VARCHAR "true"/"false" strings
+// instead of TINYINT 1/0 used by standard MySQL.  This custom type wraps
+// the built-in boolean column so Drizzle maps the values correctly.
+const moBoolean = customType<{
+  data: boolean;
+  driverData: unknown;
+}>({
+  dataType() {
+    return "boolean";
+  },
+  fromDriver(value) {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value !== 0;
+    if (typeof value === "string") return value === "true" || value === "1";
+    return false;
+  },
+  toDriver(value) {
+    return value;
+  },
+});
 
 export const AGENT_STATUS_VALUES = [
   "planning",
@@ -40,12 +62,12 @@ export const repositories = mysqlTable("repositories", {
   owner: varchar("owner", { length: 100 }).notNull(),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
-  isPrivate: boolean("is_private").default(false).notNull(),
+  isPrivate: moBoolean("is_private").default(false).notNull(),
   defaultBranch: varchar("default_branch", { length: 100 })
     .default("main")
     .notNull(),
   aiConfig: json("ai_config"),
-  syncEnabled: boolean("sync_enabled").default(true).notNull(),
+  syncEnabled: moBoolean("sync_enabled").default(true).notNull(),
   lastSyncedAt: timestamp("last_synced_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -98,7 +120,7 @@ export const discussions = mysqlTable("discussions", {
   participants: json("participants"),
   synthesizedDocument: text("synthesized_document"),
   lastSynthesizedAt: timestamp("last_synthesized_at"),
-  finalized: boolean("finalized").default(false).notNull(),
+  finalized: moBoolean("finalized").default(false).notNull(),
   finalizedAt: timestamp("finalized_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -148,7 +170,7 @@ export const webhookEvents = mysqlTable("webhook_events", {
   source: varchar("source", { length: 50 }).notNull(),
   eventType: varchar("event_type", { length: 50 }).notNull(),
   payload: json("payload").notNull(),
-  processed: boolean("processed").default(false).notNull(),
+  processed: moBoolean("processed").default(false).notNull(),
   processedAt: timestamp("processed_at"),
   errorMessage: text("error_message"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

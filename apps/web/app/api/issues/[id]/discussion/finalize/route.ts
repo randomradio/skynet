@@ -44,19 +44,23 @@ export const POST = withAuth(
 
       let finalDocument = discussion.synthesizedDocument ?? "";
 
-      // Generate final document if AI is configured
+      // Try to generate final document via AI, fall back to existing doc on failure
       if (hasAIConfig() && msgs.length > 0) {
-        finalDocument = await synthesizeDocument(
-          msgs.map((m) => ({
-            role: m.authorType as "user" | "ai",
-            content: m.content,
-          })),
-          discussion.synthesizedDocument,
-          {
-            issueTitle: issue?.title ?? "",
-            issueBody: issue?.body ?? null,
-          },
-        );
+        try {
+          finalDocument = await synthesizeDocument(
+            msgs.map((m) => ({
+              role: m.authorType as "user" | "ai",
+              content: m.content,
+            })),
+            discussion.synthesizedDocument,
+            {
+              issueTitle: issue?.title ?? "",
+              issueBody: issue?.body ?? null,
+            },
+          );
+        } catch {
+          // AI unavailable — finalize with existing document
+        }
       }
 
       await finalizeDiscussion(discussion.id, finalDocument);
