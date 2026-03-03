@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getSessionUser } from "@/lib/auth/session-user";
+import { LogoutButton } from "@/components/dashboard/logout-button";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -17,6 +18,9 @@ export default async function DashboardLayout({
   if (!user) {
     redirect("/");
   }
+
+  const username =
+    typeof user.username === "string" ? user.username : "User";
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -33,6 +37,11 @@ export default async function DashboardLayout({
             <Link className="hover:underline" href="/issues">
               Issues
             </Link>
+            <Link className="hover:underline" href="/repositories">
+              Repositories
+            </Link>
+            <span className="text-slate-600">{username}</span>
+            <LogoutButton />
           </div>
         </nav>
       </header>

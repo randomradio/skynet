@@ -12,6 +12,7 @@ interface GithubUserResponse {
   login?: string;
   name?: string | null;
   email?: string | null;
+  avatar_url?: string | null;
 }
 
 export interface GithubUserProfile {
@@ -19,6 +20,7 @@ export interface GithubUserProfile {
   login: string;
   name: string | null;
   email: string | null;
+  avatarUrl: string | null;
 }
 
 export class GithubOAuthError extends Error {
@@ -101,6 +103,10 @@ function parseGithubUserResponse(body: unknown): GithubUserResponse | null {
     email:
       typeof object.email === "string" || object.email === null
         ? object.email
+        : undefined,
+    avatar_url:
+      typeof object.avatar_url === "string" || object.avatar_url === null
+        ? object.avatar_url
         : undefined,
   };
 }
@@ -210,5 +216,6 @@ export async function fetchGithubUserProfile(
     login: body.login,
     name: body.name ?? null,
     email: body.email ?? null,
+    avatarUrl: body.avatar_url ?? null,
   };
 }

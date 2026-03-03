@@ -1,52 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getRequestToken } from "@/lib/auth/request-token";
-import { verifyAccessToken } from "@/lib/auth/jwt";
+import { withAuth } from "@/lib/auth/with-auth";
 import { listIssuesPage } from "@skynet/db";
 import type { ApiErrorResponse } from "@skynet/sdk";
 
-interface IssueListResponse {
-  issues: Array<{ id: string; title: string; state: "open" | "closed" }>;
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-  };
-  source: "database" | "not_configured";
-}
-
 export const runtime = "nodejs";
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const token = getRequestToken(request);
-  if (!token) {
-    const body: ApiErrorResponse = {
-      error: { code: "UNAUTHORIZED", message: "Missing authentication token" },
-    };
-    return NextResponse.json(body, { status: 401 });
-  }
+export const GET = withAuth(async (request: NextRequest): Promise<NextResponse> => {
+  const sp = request.nextUrl.searchParams;
+  const page = Number.parseInt(sp.get("page") ?? "1", 10);
+  const limit = Number.parseInt(sp.get("limit") ?? "20", 10);
 
-  const user = await verifyAccessToken(token);
-  if (!user) {
-    const body: ApiErrorResponse = {
-      error: { code: "UNAUTHORIZED", message: "Not authenticated" },
-    };
-    return NextResponse.json(body, { status: 401 });
-  }
-
-  const page = Number.parseInt(request.nextUrl.searchParams.get("page") ?? "1", 10);
-  const limit = Number.parseInt(
-    request.nextUrl.searchParams.get("limit") ?? "20",
-    10,
-  );
+  const state = sp.get("state") as "open" | "closed" | undefined;
+  const aiType = sp.get("ai_type") as "bug" | "feature" | "task" | "question" | undefined;
+  const aiPriority = sp.get("ai_priority") as "P0" | "P1" | "P2" | "P3" | undefined;
+  const repoOwner = sp.get("repo_owner") ?? undefined;
+  const repoName = sp.get("repo_name") ?? undefined;
 
   try {
-    const result = await listIssuesPage({ page, limit });
-    const response: IssueListResponse = {
+    const result = await listIssuesPage({
+      page,
+      limit,
+      state: state || undefined,
+      aiType: aiType || undefined,
+      aiPriority: aiPriority || undefined,
+      repoOwner: repoOwner || undefined,
+      repoName: repoName || undefined,
+    });
+
+    return NextResponse.json({
       issues: result.items.map((issue) => ({
         id: issue.id,
+        number: issue.number,
+        repoOwner: issue.repoOwner,
+        repoName: issue.repoName,
         title: issue.title,
         state: issue.state,
+        labels: issue.labels,
+        aiType: issue.aiType,
+        aiPriority: issue.aiPriority,
+        aiSummary: issue.aiSummary,
+        createdAt: issue.createdAt?.toISOString() ?? null,
+        updatedAt: issue.updatedAt?.toISOString() ?? null,
       })),
       pagination: {
         page: result.page,
@@ -54,9 +49,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         total: result.total,
       },
       source: result.source,
-    };
-
-    return NextResponse.json(response);
+    });
   } catch {
     const body: ApiErrorResponse = {
       error: {
@@ -64,7 +57,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         message: "Issue data is temporarily unavailable",
       },
     };
-
     return NextResponse.json(body, { status: 503 });
   }
-}
+});

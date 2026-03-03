@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { GithubLoginButton } from "@/components/home/github-login-button";
 import { LandingAuthEntry } from "@/components/home/landing-auth-entry";
 import { getSessionUser } from "@/lib/auth/session-user";
 
@@ -12,6 +13,8 @@ export default async function Home(): Promise<React.ReactElement> {
   if (user) {
     redirect("/dashboard");
   }
+
+  const githubClientId = process.env.GITHUB_CLIENT_ID;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-8">
@@ -24,7 +27,14 @@ export default async function Home(): Promise<React.ReactElement> {
             Sign in below to create a cookie-backed session, then continue to
             the protected dashboard experience.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            {githubClientId ? (
+              <GithubLoginButton clientId={githubClientId} />
+            ) : (
+              <span className="text-sm text-slate-500">
+                GitHub OAuth not configured (set GITHUB_CLIENT_ID)
+              </span>
+            )}
             <Link
               className="rounded-md border px-4 py-2 text-sm font-medium text-slate-900"
               href="/api/health"

@@ -6,19 +6,8 @@ import {
   GithubOAuthError,
 } from "@/lib/auth/github-oauth";
 import { issuePlatformSession } from "@/lib/auth/platform-session";
+import { upsertUser } from "@skynet/db";
 import type { ApiErrorResponse } from "@skynet/sdk";
-
-interface GithubCallbackResponse {
-  accessToken: string;
-  tokenType: "Bearer";
-  expiresIn: "1h";
-  user: {
-    sub: string;
-    username: string;
-    provider: "github";
-    githubId: number;
-  };
-}
 
 export const runtime = "nodejs";
 
@@ -53,6 +42,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const githubAccessToken = await exchangeGithubCodeForAccessToken(code);
     const githubUser = await fetchGithubUserProfile(githubAccessToken);
 
+    // Persist or update the user in the database (fire-and-forget if DB not configured)
+    upsertUser({
+      githubId: githubUser.id,
+      username: githubUser.login,
+      avatarUrl: githubUser.avatarUrl,
+    }).catch(() => {
+      // Silently ignore DB errors — login should still succeed
+    });
+
     const platformSub = `github:${githubUser.id}`;
     const issuedSession = await issuePlatformSession({
       sub: platformSub,
@@ -62,19 +60,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       githubId: githubUser.id,
     });
 
-    const responseBody: GithubCallbackResponse = {
-      accessToken: issuedSession.accessToken,
-      tokenType: issuedSession.tokenType,
-      expiresIn: issuedSession.expiresIn,
-      user: {
-        sub: platformSub,
-        username: githubUser.login,
-        provider: "github",
-        githubId: githubUser.id,
-      },
-    };
-
-    const response = NextResponse.json(responseBody, { status: 201 });
+    const response = NextResponse.redirect(new URL("/dashboard", request.url));
     response.cookies.set(issuedSession.sessionCookie);
 
     return response;

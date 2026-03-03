@@ -135,6 +135,7 @@ describe("github oauth helpers", () => {
       login: "octocat",
       name: "The Octocat",
       email: null,
+      avatarUrl: null,
     });
   });
 
