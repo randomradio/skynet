@@ -1,0 +1,33 @@
+
+> skynet@0.1.0 typecheck /home/momo/src/skynet
+> turbo run typecheck
+
+• turbo 2.8.12
+• Packages in scope: @skynet/agent-runtime, @skynet/config, @skynet/db, @skynet/sdk, @skynet/ui, @skynet/web
+• Running typecheck in 6 packages
+• Remote caching disabled
+@skynet/sdk:typecheck: cache hit, replaying logs 61bf5167b74c572a
+@skynet/sdk:typecheck: 
+@skynet/sdk:typecheck: > @skynet/sdk@0.1.0 typecheck /home/momo/src/skynet/packages/sdk
+@skynet/sdk:typecheck: > tsc --noEmit
+@skynet/sdk:typecheck: 
+@skynet/db:typecheck: cache hit, replaying logs 9da5905f739540a3
+@skynet/db:typecheck: 
+@skynet/db:typecheck: > @skynet/db@0.1.0 typecheck /home/momo/src/skynet/packages/db
+@skynet/db:typecheck: > tsc --noEmit
+@skynet/db:typecheck: 
+@skynet/agent-runtime:typecheck: cache hit, replaying logs b3d07aa4d700d820
+@skynet/agent-runtime:typecheck: 
+@skynet/agent-runtime:typecheck: > @skynet/agent-runtime@0.1.0 typecheck /home/momo/src/skynet/apps/agent-runtime
+@skynet/agent-runtime:typecheck: > tsc --noEmit
+@skynet/agent-runtime:typecheck: 
+@skynet/web:typecheck: cache hit, replaying logs 643a5c98581b4621
+@skynet/web:typecheck: 
+@skynet/web:typecheck: > @skynet/web@0.1.0 typecheck /home/momo/src/skynet/apps/web
+@skynet/web:typecheck: > tsc --noEmit
+@skynet/web:typecheck: 
+
+ Tasks:    4 successful, 4 total
+Cached:    4 cached, 4 total
+  Time:    50ms >>> FULL TURBO
+

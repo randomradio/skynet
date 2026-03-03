@@ -1,0 +1,3 @@
+apps/web/**
+packages/sdk/**
+docs/implementation/**

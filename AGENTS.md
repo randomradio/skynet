@@ -69,30 +69,24 @@ Skynet 是一个 AI-Native Development Platform，包含：
 
 ## 代码组织
 
-```
-web/
-├── app/                    # Next.js App Router
-│   ├── (dashboard)/        # Dashboard route group
-│   ├── api/                # API routes
-│   └── globals.css
-├── components/             # React 组件
-│   ├── ui/                 # shadcn/ui 组件
-│   ├── issues/             # Issue 相关组件
-│   ├── discussions/        # 讨论相关组件
-│   └── agents/             # Agent 相关组件
-├── lib/                    # 工具库
-│   ├── db/                 # 数据库连接和查询
-│   ├── github/             # GitHub API 客户端
-│   ├── ai/                 # AI 集成 (Claude)
-│   └── agents/             # Agent 管理
-└── types/                  # TypeScript 类型
+```text
+apps/
+├── web/
+│   ├── app/                # Next.js App Router
+│   ├── components/         # React 组件
+│   ├── lib/                # 工具库
+│   └── types/              # TypeScript 类型
+└── agent-runtime/
+    ├── src/
+    │   ├── index.ts        # Agent 入口
+    │   ├── agent.ts        # Agent 逻辑
+    │   └── tools/          # MCP 工具
+    └── Dockerfile          # AIOSandbox 镜像
 
-agent-runtime/
-├── src/
-│   ├── index.ts            # Agent 入口
-│   ├── agent.ts            # Agent 逻辑
-│   └── tools/              # MCP 工具
-└── Dockerfile              # AIOSandbox 镜像
+packages/
+├── db/                     # 共享数据库 schema/query
+├── sdk/                    # 共享 API 类型与客户端
+└── ui/                     # 共享 UI 组件
 ```
 
 ## 编码规范
@@ -118,7 +112,7 @@ agent-runtime/
 - RESTful 端点
 - 使用 `route.ts` 文件
 - 错误统一格式：`{ error: { code, message } }`
-- 认证使用 NextAuth session
+- 认证使用 Bearer JWT
 
 ## Git Flow
 
@@ -168,6 +162,10 @@ Examples:
 6. **测试** - 验证功能
 7. **文档** - 更新注释和文档
 
+### 执行规则
+1. 任务只有在相关测试通过后才可标记完成
+2. 需要 token / API key / secret 时，必须先向用户索取
+
 ## MCP 工具使用
 
 ### 开发时可用的 MCP
@@ -183,31 +181,33 @@ Examples:
 ### 创建新页面
 ```bash
 # 1. 创建目录和页面文件
-mkdir -p app/(dashboard)/new-feature
-write app/(dashboard)/new-feature/page.tsx
+mkdir -p apps/web/app/(dashboard)/new-feature
+write apps/web/app/(dashboard)/new-feature/page.tsx
 
 # 2. 创建 API 端点 (如需要)
-mkdir -p app/api/new-feature
-write app/api/new-feature/route.ts
+mkdir -p apps/web/app/api/new-feature
+write apps/web/app/api/new-feature/route.ts
 
 # 3. 创建组件
-write components/new-feature/NewComponent.tsx
+write apps/web/components/new-feature/NewComponent.tsx
 ```
 
 ### 添加数据库表
-1. 更新 `lib/db/schema.ts`
-2. 运行 `npm run db:generate`
-3. 运行 `npm run db:migrate`
+1. 更新 `packages/db/schema.ts`
+2. 运行 `pnpm --filter @skynet/db db:generate`
+3. 运行 `pnpm --filter @skynet/db db:migrate`
 
 ### 实现 API 端点
 ```typescript
-// app/api/example/route.ts
+// apps/web/app/api/example/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { verifyAccessToken } from '@/lib/auth/jwt';
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session) {
+  const authorization = request.headers.get('authorization');
+  const token = authorization?.replace('Bearer ', '');
+  const user = token ? verifyAccessToken(token) : null;
+  if (!user) {
     return NextResponse.json(
       { error: { code: 'UNAUTHORIZED', message: 'Not authenticated' } },
       { status: 401 }
@@ -226,24 +226,25 @@ export async function GET(request: NextRequest) {
 
 ```bash
 # 必需
-DATABASE_URL="mysql://..."
+MATRIXONE_URL="mysql://..."
 GITHUB_CLIENT_ID="..."
 GITHUB_CLIENT_SECRET="..."
-NEXTAUTH_SECRET="..."
+JWT_SECRET="..."
+GITHUB_WEBHOOK_SECRET="..."
 ANTHROPIC_API_KEY="..."
 
 # 可选 (有默认值)
-NEXTAUTH_URL="http://localhost:3000"
 GITHUB_TOKEN="..."
+DATABASE_URL="mysql://..."   # 兼容旧配置
 ```
 
 ## 调试和测试
 
 ### 本地开发
 ```bash
-cd web
-npm run dev          # 启动开发服务器
-npm run db:studio    # 启动 Drizzle Studio
+pnpm install
+pnpm --filter @skynet/web dev          # 启动开发服务器
+pnpm --filter @skynet/db db:studio     # 启动 Drizzle Studio
 ```
 
 ### 测试策略

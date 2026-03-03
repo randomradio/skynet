@@ -1,0 +1,43 @@
+iteration=11
+timestamp=2026-03-02T16:42:27Z
+changed_path_count=0
+changed_paths_preview=(none)
+
+pre_status_porcelain:
+ M docs/INDEX.md
+ M docs/README.md
+ M docs/api/endpoints.md
+ M docs/architecture/github-integration.md
+ M docs/architecture/overview.md
+ M docs/architecture/project-structure.md
+ M docs/data-model/entities.md
+ M docs/data-model/schema.sql
+ M docs/implementation/phases.md
+ M docs/implementation/tech-stack.md
+?? apps/
+?? docs/architecture/adr/
+?? docs/architecture/engineering-principles.md
+?? docs/implementation/development-plan.md
+?? docs/implementation/implementation-readiness.md
+?? packages/
+
+post_status_porcelain:
+ M docs/INDEX.md
+ M docs/README.md
+ M docs/api/endpoints.md
+ M docs/architecture/github-integration.md
+ M docs/architecture/overview.md
+ M docs/architecture/project-structure.md
+ M docs/data-model/entities.md
+ M docs/data-model/schema.sql
+ M docs/implementation/phases.md
+ M docs/implementation/tech-stack.md
+?? apps/
+?? docs/architecture/adr/
+?? docs/architecture/engineering-principles.md
+?? docs/implementation/development-plan.md
+?? docs/implementation/implementation-readiness.md
+?? packages/
+
+changed_paths:
+(none)

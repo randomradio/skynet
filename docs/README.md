@@ -2,7 +2,7 @@
 
 ## Overview
 
-An AI-native development platform where cross-functional teams (PMs, engineers, designers, operators) collaborate around issues with AI assistance. The platform enables AI agents to generate code locally on engineers' machines while providing visibility to the entire team.
+An AI-native development platform where cross-functional teams (PMs, engineers, designers, operators) collaborate around issues with AI assistance. The platform executes AI agents in AIOSandbox for isolated coding/testing while providing visibility to the entire team.
 
 ## Key Workflows
 
@@ -14,7 +14,7 @@ An AI-native development platform where cross-functional teams (PMs, engineers, 
 2. **Issue → Code**
    - Engineers select issues and start implementation
    - AI generates implementation plans (AGENTS.md style)
-   - Agents spawn locally on engineer's machine
+   - Agents run in AIOSandbox isolated containers
    - CI/CD validates changes
    - Human review via the platform
 
@@ -24,12 +24,12 @@ An AI-native development platform where cross-functional teams (PMs, engineers, 
 
 ## MVP Focus
 
-The MVP focuses on the core collaborative loop:
+The MVP (Phases 1-2) focuses on issue management foundation:
 
 1. **Issue Selection** → AI researches related code → provides background
-2. **Team Chat** → PM, designer, dev join → AI acts as judge, collecting info
-3. **Living Document** → AI continuously updates final document or execution plan
-4. **Handoff** → Ready for agent execution or human review
+2. **Issue Sync** → GitHub webhook + incremental sync into MatrixOne
+3. **Issue Management** → list/detail/filter/search with AI summary
+4. **Operational Visibility** → dashboard stats + activity feed
 
 ## Documentation Structure
 
@@ -38,6 +38,14 @@ The MVP focuses on the core collaborative loop:
 - [`/api`](api/) - API specifications and endpoints
 - [`/ui`](ui/) - UI/UX design and component specifications
 - [`/implementation`](implementation/) - Implementation phases and milestones
+
+## Repository Model
+
+The repository uses a workspace monorepo layout:
+
+- `apps/web` - Next.js product app
+- `apps/agent-runtime` - AIOSandbox runtime
+- `packages/*` - Shared libraries (db, sdk, ui, config)
 
 ## Quick Start
 

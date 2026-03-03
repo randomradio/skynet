@@ -114,6 +114,7 @@ type AgentStatus =
   | 'coding'        // Writing code
   | 'testing'       // Running tests
   | 'review'        // Awaiting human review
+  | 'cancelled'     // Cancelled by user
   | 'completed'     // Successfully completed
   | 'failed';       // Failed (see logs)
 

@@ -1,0 +1,14 @@
+{
+  "name": "@skynet/web-placeholder",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "echo \"Initialize Next.js app in apps/web\" && exit 0",
+    "build": "echo \"TODO: build @skynet/web\"",
+    "lint": "echo \"TODO: lint @skynet/web\"",
+    "typecheck": "echo \"TODO: typecheck @skynet/web\"",
+    "test": "echo \"TODO: test @skynet/web\"",
+    "format": "echo \"TODO: format @skynet/web\"",
+    "clean": "rm -rf .next dist coverage"
+  }
+}

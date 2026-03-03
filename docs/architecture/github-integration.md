@@ -163,7 +163,7 @@ class GitHubClient {
 ### 2. Webhook 处理
 
 ```typescript
-// app/api/webhooks/github/route.ts
+// apps/web/app/api/webhooks/github/route.ts
 import { verifyWebhookSignature } from '@/lib/github/webhooks';
 
 export async function POST(request: Request) {

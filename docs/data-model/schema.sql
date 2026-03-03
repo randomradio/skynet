@@ -75,7 +75,7 @@ CREATE TABLE agent_runs (
     id VARCHAR(36) PRIMARY KEY,
     issue_id VARCHAR(36) NOT NULL,
     started_by VARCHAR(36) NOT NULL,
-    status ENUM('planning', 'coding', 'testing', 'review', 'completed', 'failed') NOT NULL,
+    status ENUM('planning', 'coding', 'testing', 'review', 'cancelled', 'completed', 'failed') NOT NULL,
 
     -- Execution details
     plan JSON,

@@ -1,0 +1,17 @@
+
+> @skynet/web@0.1.0 test
+> vitest run --passWithNoTests
+
+
+ RUN  v3.2.4 /home/momo/src/skynet/apps/web
+
+ ✓ lib/auth/session.test.ts (4 tests) 4ms
+ ✓ lib/auth/request-token.test.ts (3 tests) 3ms
+ ✓ lib/auth/bearer.test.ts (4 tests) 4ms
+ ✓ lib/auth/jwt.test.ts (2 tests) 9ms
+
+ Test Files  4 passed (4)
+      Tests  13 passed (13)
+   Start at  00:27:17
+   Duration  459ms (transform 184ms, setup 0ms, collect 285ms, tests 20ms, environment 1ms, prepare 476ms)
+

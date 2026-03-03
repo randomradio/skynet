@@ -4,7 +4,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    AI-Native Development Platform (Local)                    │
+│                    AI-Native Development Platform (Web/API)                  │
 │  ┌─────────────────────────────────────────────────────────────────────────┐│
 │  │                         Web UI (Next.js)                                 ││
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐ ││
@@ -43,7 +43,7 @@
 
 ## Component Responsibilities
 
-### AI-Native Development Platform (Local/Server)
+### AI-Native Development Platform (Server)
 
 **Web UI (Next.js 15 + React)**
 - **Dashboard**: Organization-level view across all repos
@@ -316,8 +316,8 @@ WORKDIR /workspace
 RUN apk add --no-cache git gh
 
 # Copy agent runtime
-COPY agent-runtime/dist /app
-COPY agent-runtime/node_modules /app/node_modules
+COPY apps/agent-runtime/dist /app
+COPY apps/agent-runtime/node_modules /app/node_modules
 
 # Expose API port (optional, mainly for health checks)
 EXPOSE 8080
@@ -474,7 +474,7 @@ description: Agent for MatrixOne database development
 |----------|----------|
 | Agent isolation | AIOSandbox containers |
 | CI integration | Local tests in sandbox + GitHub Actions |
-| Authentication | GitHub OAuth only |
+| Authentication | GitHub OAuth + Bearer JWT |
 | Real-time updates | WebSocket |
 | MCP scope | filesystem, terminal, github |
 | Iteration policy | Defined above with handoff criteria |

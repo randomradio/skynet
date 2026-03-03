@@ -1,0 +1,39 @@
+
+> @skynet/web@0.1.0 build /home/momo/src/skynet/apps/web
+> next build
+
+   ▲ Next.js 15.5.12
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 1982ms
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/13) ...
+   Generating static pages (3/13) 
+   Generating static pages (6/13) 
+   Generating static pages (9/13) 
+ ✓ Generating static pages (13/13)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                    1.45 kB         107 kB
+├ ○ /_not-found                            992 B         103 kB
+├ ƒ /api/auth/github/callback              145 B         102 kB
+├ ƒ /api/auth/logout                       145 B         102 kB
+├ ƒ /api/auth/token                        145 B         102 kB
+├ ƒ /api/example                           145 B         102 kB
+├ ƒ /api/health                            145 B         102 kB
+├ ƒ /api/issues                            145 B         102 kB
+├ ƒ /api/issues/[id]                       145 B         102 kB
+├ ƒ /dashboard                           1.71 kB         104 kB
+└ ƒ /issues                                145 B         102 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/04c9b325-b1951f30c7481ff8.js  54.2 kB
+  ├ chunks/690-c3daa5e890ceb63f.js       46.1 kB
+  └ other shared chunks (total)           1.9 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

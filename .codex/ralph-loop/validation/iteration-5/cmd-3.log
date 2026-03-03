@@ -1,0 +1,15 @@
+
+> @skynet/web@0.1.0 test
+> vitest run --passWithNoTests
+
+
+ RUN  v3.2.4 /home/momo/src/skynet/apps/web
+
+ ✓ lib/auth/bearer.test.ts (4 tests) 3ms
+ ✓ lib/auth/jwt.test.ts (2 tests) 11ms
+
+ Test Files  2 passed (2)
+      Tests  6 passed (6)
+   Start at  00:18:48
+   Duration  517ms (transform 112ms, setup 0ms, collect 165ms, tests 14ms, environment 0ms, prepare 289ms)
+

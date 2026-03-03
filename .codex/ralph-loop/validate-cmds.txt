@@ -1,0 +1,4 @@
+pnpm --filter @skynet/web lint
+pnpm typecheck
+pnpm test
+pnpm --filter @skynet/web build

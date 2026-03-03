@@ -1,0 +1,19 @@
+# Node
+node_modules/
+apps/**/pnpm-lock.yaml
+
+# Build artifacts
+.next/
+dist/
+coverage/
+.turbo/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/

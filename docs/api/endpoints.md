@@ -2,10 +2,45 @@
 
 ## Authentication
 
-All API requests require authentication via GitHub OAuth JWT token.
+All API requests (except GitHub webhook endpoint) require platform-issued Bearer JWT.
 
 ```
 Authorization: Bearer <jwt_token>
+```
+
+### GitHub OAuth Callback
+
+```http
+GET /api/auth/github/callback?code={github_oauth_code}
+```
+
+Exchanges the GitHub OAuth `code`, fetches GitHub user profile, issues a platform Bearer JWT, and sets the HTTP-only session cookie used by protected pages and APIs.
+
+**Success Response (`201`):**
+
+```json
+{
+  "accessToken": "<platform_jwt>",
+  "tokenType": "Bearer",
+  "expiresIn": "1h",
+  "user": {
+    "sub": "github:123456",
+    "username": "octocat",
+    "provider": "github",
+    "githubId": 123456
+  }
+}
+```
+
+**Error Response (contract):**
+
+```json
+{
+  "error": {
+    "code": "INVALID_GITHUB_OAUTH_CODE",
+    "message": "The code passed is incorrect or expired."
+  }
+}
 ```
 
 ---
@@ -158,7 +193,7 @@ GET /api/issues/{issueId}/discussion
 
 ### Post Message
 ```http
-POST /api/discussions/{discussionId}/messages
+POST /api/issues/{issueId}/discussion/messages
 Content-Type: application/json
 
 {
@@ -180,7 +215,7 @@ Content-Type: application/json
 
 ### Finalize Discussion
 ```http
-POST /api/discussions/{discussionId}/finalize
+POST /api/issues/{issueId}/discussion/finalize
 ```
 
 Locks the synthesized document and marks it ready for execution.

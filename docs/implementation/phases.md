@@ -20,15 +20,17 @@ The MVP is implemented in 5 phases over approximately 10 weeks. Each phase build
 |-------------|-------------|
 | Project Setup | Next.js 15 + TypeScript + Tailwind + shadcn/ui |
 | Database Layer | MatrixOne connection, schema migration, basic queries |
-| Auth System | GitHub OAuth, JWT handling, protected routes |
+| Auth System | GitHub OAuth, Bearer JWT issuance/validation, protected routes |
 | Layout Shell | Header, navigation, sidebar structure |
 
 ### Technical Tasks
 
 1. **Initialize Next.js Project**
    ```bash
-   npx create-next-app@latest web --typescript --tailwind --app --src-dir
-   cd web
+   pnpm init
+   # create pnpm-workspace.yaml and turbo.json at repo root
+   npx create-next-app@latest apps/web --typescript --tailwind --app
+   cd apps/web
    npx shadcn-ui@latest init
    ```
 
@@ -38,9 +40,9 @@ The MVP is implemented in 5 phases over approximately 10 weeks. Each phase build
    - Implement basic CRUD operations
 
 3. **Authentication**
-   - Configure NextAuth.js with GitHub provider
-   - Create login/logout flows
-   - Protect API routes and pages
+   - Configure GitHub OAuth login flow
+   - Issue platform access token (Bearer JWT)
+   - Protect API routes and pages via JWT middleware
 
 4. **Base Layout**
    - Header with navigation

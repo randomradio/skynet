@@ -14,8 +14,10 @@ Complete documentation for the AI-Native Development Platform MVP.
 | [architecture/overview.md](architecture/overview.md) | High-level system architecture, data flow, AIOSandbox integration |
 | [architecture/github-integration.md](architecture/github-integration.md) | GitHub PAT + Webhook integration scheme |
 | [architecture/ai-behavior.md](architecture/ai-behavior.md) | AI participation rules and behavior specification |
+| [architecture/engineering-principles.md](architecture/engineering-principles.md) | Long-term engineering principles and governance |
 | [architecture/project-structure.md](architecture/project-structure.md) | File organization and project layout |
 | [architecture/rules-files.md](architecture/rules-files.md) | AGENTS.md and rules file structure (Claude Code skills pattern) |
+| [architecture/adr/0001-workspace-monorepo.md](architecture/adr/0001-workspace-monorepo.md) | ADR: workspace monorepo layout |
 
 ## Data Model
 
@@ -42,6 +44,8 @@ Complete documentation for the AI-Native Development Platform MVP.
 |----------|-------------|
 | [implementation/phases.md](implementation/phases.md) | 10-week implementation roadmap |
 | [implementation/tech-stack.md](implementation/tech-stack.md) | Technology choices and configuration |
+| [implementation/development-plan.md](implementation/development-plan.md) | Design review findings + executable sprint plan |
+| [implementation/implementation-readiness.md](implementation/implementation-readiness.md) | Implementation readiness checklist and execution rules |
 
 ## Documentation Map
 
@@ -52,7 +56,10 @@ docs/
 ├── architecture/
 │   ├── overview.md       # System architecture
 │   ├── ai-behavior.md    # AI behavior spec
-│   └── project-structure.md # File organization
+│   ├── engineering-principles.md # Long-term engineering principles
+│   ├── project-structure.md # File organization
+│   └── adr/
+│       └── 0001-workspace-monorepo.md
 ├── data-model/
 │   ├── entities.md       # TypeScript types
 │   └── schema.sql        # Database schema
@@ -62,6 +69,8 @@ docs/
 │   └── design.md         # UI/UX design
 └── implementation/
     ├── phases.md         # Implementation roadmap
+    ├── development-plan.md # Design review + execution plan
+    ├── implementation-readiness.md # Readiness checklist
     └── tech-stack.md     # Technology stack
 ```
 
@@ -75,18 +84,21 @@ docs/
 
 ### For Implementation
 1. [implementation/phases.md](implementation/phases.md) - Roadmap
-2. [implementation/tech-stack.md](implementation/tech-stack.md) - Stack
-3. [architecture/project-structure.md](architecture/project-structure.md) - Structure
-4. [api/endpoints.md](api/endpoints.md) - API design
-5. [ui/design.md](ui/design.md) - UI specs
+2. [implementation/development-plan.md](implementation/development-plan.md) - Execution plan
+3. [implementation/implementation-readiness.md](implementation/implementation-readiness.md) - Readiness
+4. [implementation/tech-stack.md](implementation/tech-stack.md) - Stack
+5. [architecture/project-structure.md](architecture/project-structure.md) - Structure
+6. [api/endpoints.md](api/endpoints.md) - API design
+7. [ui/design.md](ui/design.md) - UI specs
 
 ## Key Decisions Documented
 
 | Decision | Location |
 |----------|----------|
 | Next.js 15 + App Router | [tech-stack.md](implementation/tech-stack.md) |
+| Workspace monorepo (`apps/*`, `packages/*`) | [project-structure.md](architecture/project-structure.md) |
 | MatrixOne database | [overview.md](architecture/overview.md) |
-| Local agent execution | [overview.md](architecture/overview.md) |
+| AIOSandbox execution | [overview.md](architecture/overview.md) |
 | AI as active participant | [ai-behavior.md](architecture/ai-behavior.md) |
 | Living document pattern | [ai-behavior.md](architecture/ai-behavior.md) |
 | 5-phase implementation | [phases.md](implementation/phases.md) |
@@ -96,8 +108,8 @@ docs/
 The MVP (Phases 1-2 of the full 5-phase plan) includes:
 
 1. **Issue Selection** → AI researches related code → provides background
-2. **Team Chat** → PM, designer, dev join → AI acts as judge, collecting info
-3. **Living Document** → AI continuously updates final document or execution plan
-4. **Handoff** → Ready for agent execution or human review
+2. **Issue Sync** → GitHub webhook + incremental sync into MatrixOne
+3. **Issue Management** → list/detail/filter/search with AI summary
+4. **Operational Visibility** → dashboard stats + activity feed
 
 See [phases.md](implementation/phases.md) for full details.

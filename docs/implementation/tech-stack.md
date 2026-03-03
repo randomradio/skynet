@@ -18,10 +18,17 @@
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | Next.js API Routes | 15.x | API server |
-| NextAuth.js | 5.x | Authentication |
+| GitHub OAuth + jose | latest | OAuth login + Bearer JWT authentication |
 | MatrixOne | existing | Primary database |
 | Drizzle ORM | latest | Type-safe SQL |
 | WebSocket (ws) | latest | Real-time updates |
+
+### Monorepo Tooling
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| pnpm workspaces | 10.x | Workspace package management |
+| Turborepo | 2.x | Task orchestration and caching |
 
 ### AI Integration
 
@@ -45,14 +52,14 @@
 ### Web Application
 
 ```bash
-cd web
+cd apps/web
 
 # Core
-npm install next@latest react@latest react-dom@latest
-npm install typescript @types/react @types/node
+pnpm add next@latest react@latest react-dom@latest
+pnpm add typescript @types/react @types/node
 
 # Styling
-npm install tailwindcss postcss autoprefixer
+pnpm add tailwindcss postcss autoprefixer
 npx tailwindcss init -p
 
 # UI Components
@@ -60,53 +67,53 @@ npx shadcn-ui@latest init
 npx shadcn-ui@latest add button card input textarea badge avatar dropdown-menu dialog tabs scroll-area separator
 
 # Database
-npm install drizzle-orm mysql2
-npm install -D drizzle-kit
+pnpm add drizzle-orm mysql2
+pnpm add -D drizzle-kit
 
 # Authentication
-npm install next-auth@beta
+pnpm add jose
 
 # Data Fetching
-npm install @tanstack/react-query @tanstack/react-query-devtools
+pnpm add @tanstack/react-query @tanstack/react-query-devtools
 
 # AI
-npm install @anthropic-ai/sdk ai
+pnpm add @anthropic-ai/sdk ai
 
 # Utilities
-npm install clsx tailwind-merge zod date-fns
-npm install lucide-react
+pnpm add clsx tailwind-merge zod date-fns
+pnpm add lucide-react
 
 # WebSocket
-npm install ws @types/ws
+pnpm add ws @types/ws
 
 # Forms
-npm install react-hook-form @hookform/resolvers
+pnpm add react-hook-form @hookform/resolvers
 ```
 
 ### Agent Runtime
 
 ```bash
-cd agent-runtime
+cd apps/agent-runtime
 
 # Core
-npm init -y
-npm install typescript @types/node ts-node
+pnpm init
+pnpm add typescript @types/node ts-node
 
 # AI
-npm install @anthropic-ai/sdk
-npm install @modelcontextprotocol/sdk
+pnpm add @anthropic-ai/sdk
+pnpm add @modelcontextprotocol/sdk
 
 # Git
-npm install simple-git @types/simple-git
+pnpm add simple-git @types/simple-git
 
 # GitHub
-npm install @octokit/rest
+pnpm add @octokit/rest
 
 # Utilities
-npm install dotenv winston zod
+pnpm add dotenv winston zod
 
 # Development
-npm install -D tsx nodemon
+pnpm add -D tsx nodemon
 ```
 
 ## Configuration Files
