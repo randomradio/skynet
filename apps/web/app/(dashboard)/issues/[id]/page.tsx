@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AIAnalysisPanel } from "@/components/issues/ai-analysis-panel";
 import { PriorityBadge } from "@/components/issues/priority-badge";
@@ -29,9 +29,11 @@ interface IssueDetail {
 
 export default function IssueDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [issue, setIssue] = useState<IssueDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [startingAgent, setStartingAgent] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -51,6 +53,26 @@ export default function IssueDetailPage() {
     }
     load();
   }, [params.id]);
+
+  const handleStartAgent = useCallback(async () => {
+    if (!issue) return;
+    setStartingAgent(true);
+    try {
+      const res = await fetch("/api/agents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ issueId: issue.id }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        router.push(`/agents/${data.id}`);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setStartingAgent(false);
+    }
+  }, [issue, router]);
 
   if (loading) {
     return <div className="text-sm text-slate-500">Loading...</div>;
@@ -126,13 +148,20 @@ export default function IssueDetailPage() {
             )}
           </div>
 
-          <div>
+          <div className="flex gap-2">
             <Link
               href={`/issues/${issue.id}/discussion`}
               className="inline-flex items-center rounded bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
             >
               Start Discussion
             </Link>
+            <button
+              onClick={handleStartAgent}
+              disabled={startingAgent}
+              className="inline-flex items-center rounded bg-purple-700 px-4 py-2 text-sm font-medium text-white hover:bg-purple-600 disabled:opacity-50"
+            >
+              {startingAgent ? "Starting..." : "Start Implementation"}
+            </button>
           </div>
         </div>
 

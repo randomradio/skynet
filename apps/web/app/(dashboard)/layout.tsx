@@ -40,6 +40,9 @@ export default async function DashboardLayout({
             <Link className="hover:underline" href="/repositories">
               Repositories
             </Link>
+            <Link className="hover:underline" href="/agents">
+              Agents
+            </Link>
             <span className="text-slate-600">{username}</span>
             <LogoutButton />
           </div>

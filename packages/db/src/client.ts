@@ -31,7 +31,7 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
   if (!hasDatabaseUrl()) {
     return {
       status: "not_configured",
-      message: "MATRIXONE_URL is not configured (DATABASE_URL is accepted).",
+      message: "DATABASE_URL is not configured.",
     };
   }
 

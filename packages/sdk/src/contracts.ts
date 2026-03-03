@@ -40,4 +40,8 @@ export const ROUTES = {
   dashboard: "/api/dashboard",
   repositories: "/api/repositories",
   syncRepository: (repoId: string): string => `/api/repositories/${repoId}/sync`,
+  agents: "/api/agents",
+  agentById: (runId: string): string => `/api/agents/${runId}`,
+  agentCancel: (runId: string): string => `/api/agents/${runId}/cancel`,
+  agentLogs: (runId: string): string => `/api/agents/${runId}/logs`,
 } as const;

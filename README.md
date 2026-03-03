@@ -7,6 +7,7 @@ AI-Native Development Platform that enables cross-functional teams (PMs, enginee
 - **GitHub Issue Sync** -- Connects to GitHub repos via PAT + webhook, syncs issues in real-time
 - **AI Issue Analysis** -- Classifies issues by type (bug/feature/task/question), priority (P0-P3), generates summaries and tags via Kimi (Moonshot)
 - **Team Discussion** -- Chat interface per issue with streaming AI responses, living document synthesis, and one-way finalization
+- **AI Agent Runs** -- AI-powered implementation plan generation and code generation from issues, with real-time log streaming
 - **Dashboard** -- Real-time stats on open/closed issues, priority breakdown, activity feed
 
 ## Architecture
@@ -18,8 +19,8 @@ skynet/
 │   │   ├── app/              # App Router pages + API routes
 │   │   ├── components/       # React components
 │   │   ├── hooks/            # Custom React hooks
-│   │   └── lib/              # Server utilities (ai, auth, github)
-│   └── agent-runtime/        # Agent runtime for AIOSandbox (future)
+│   │   └── lib/              # Server utilities (ai, auth, github, agent)
+│   └── agent-runtime/        # Agent runtime for AIOSandbox (Docker)
 ├── packages/
 │   ├── db/                   # Drizzle ORM schema + query functions
 │   ├── sdk/                  # Shared contracts and types
@@ -59,26 +60,34 @@ pnpm install
 
 ### 2. Configure environment
 
-Create `apps/web/.env` (or symlink from root `.env`):
+Create `.env` at the project root and symlink it to `apps/web/.env`:
 
 ```bash
-# Database (MatrixOne)
-MATRIXONE_URL="mysql://root:111@127.0.0.1:6001/skynet"
+# Create the .env file at root
+cat > .env << 'EOF'
+# Database (MatrixOne via MySQL wire protocol)
+DATABASE_URL="mysql://root:111@127.0.0.1:6001/skynet"
 
 # GitHub OAuth
 GITHUB_CLIENT_ID="your-github-oauth-app-id"
 GITHUB_CLIENT_SECRET="your-github-oauth-app-secret"
 
-# JWT
+# JWT Session Secret
 JWT_SECRET="a-strong-random-secret"
 
-# GitHub (for API calls + webhooks)
+# GitHub PAT (for API calls + webhooks)
 GITHUB_TOKEN="ghp_your_personal_access_token"
 GITHUB_WEBHOOK_SECRET="your-webhook-secret"
 
 # AI (Moonshot/Kimi)
 MOONSHOT_API_KEY="sk-your-moonshot-api-key"
+EOF
+
+# Next.js reads .env from the app directory, so symlink it
+ln -sf ../../.env apps/web/.env
 ```
+
+See **[Credential Setup Guide](#credential-setup-guide)** below for how to obtain each value.
 
 ### 3. Create database and tables
 
@@ -87,7 +96,7 @@ MOONSHOT_API_KEY="sk-your-moonshot-api-key"
 mysql -h 127.0.0.1 -P 6001 -u root -p111 -e "CREATE DATABASE IF NOT EXISTS skynet;"
 
 # Apply schema (use db:push since drizzle-kit migrate has MO compatibility issues)
-pnpm --filter @skynet/db db:push
+DATABASE_URL="mysql://root:111@127.0.0.1:6001/skynet" pnpm --filter @skynet/db db:push
 ```
 
 If `db:push` fails, apply the migration SQL manually:
@@ -96,12 +105,6 @@ If `db:push` fails, apply the migration SQL manually:
 sed 's/--> statement-breakpoint/;/g' packages/db/drizzle/0000_shocking_thena.sql > /tmp/init.sql
 sed -i 's/CREATE TABLE `/CREATE TABLE IF NOT EXISTS `/g' /tmp/init.sql
 mysql -h 127.0.0.1 -P 6001 -u root -p111 skynet < /tmp/init.sql
-
-# Sprint 3 migration (finalized columns)
-mysql -h 127.0.0.1 -P 6001 -u root -p111 skynet -e "
-  ALTER TABLE discussions ADD finalized boolean DEFAULT false NOT NULL;
-  ALTER TABLE discussions ADD finalized_at timestamp;
-"
 ```
 
 ### 4. Start development
@@ -157,6 +160,22 @@ In your GitHub repo **Settings > Webhooks**:
 | Secret | Same as `GITHUB_WEBHOOK_SECRET` |
 | Events | **Issues** |
 
+### Start an Agent Run
+
+From the issue detail page, click **Start Implementation**. The agent will:
+1. Generate an implementation plan using AI
+2. Generate code changes based on the plan
+3. Stream logs in real-time to the agent detail page
+
+You can also start agent runs via API:
+
+```bash
+curl -X POST http://localhost:3000/api/agents \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"issueId":"<issue-uuid>","options":{"autoCreatePR":false}}'
+```
+
 ### Workflow
 
 1. **Dashboard** (`/dashboard`) -- View stats and activity feed
@@ -164,6 +183,8 @@ In your GitHub repo **Settings > Webhooks**:
 3. **Issue Detail** (`/issues/<id>`) -- View issue body, labels, click **Analyze** for AI classification
 4. **Discussion** (`/issues/<id>/discussion`) -- Chat with AI about the issue, living document auto-updates in the sidebar
 5. **Finalize** -- Lock the discussion and produce a final planning document
+6. **Start Implementation** -- Launch an AI agent to generate a plan and code
+7. **Agent Detail** (`/agents/<id>`) -- Monitor agent progress with live log streaming
 
 ## API Routes
 
@@ -189,6 +210,15 @@ In your GitHub repo **Settings > Webhooks**:
 | POST | `/api/issues/:id/discussion/ai-respond` | Yes | Streaming AI response (SSE) |
 | POST | `/api/issues/:id/discussion/synthesize` | Yes | Manual document synthesis |
 | POST | `/api/issues/:id/discussion/finalize` | Yes | Finalize discussion (irreversible) |
+
+### Agents
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/agents` | Yes | List agent runs (params: `page`, `limit`, `status`, `issue_id`) |
+| POST | `/api/agents` | Yes | Start agent run (body: `{issueId, options?}`) |
+| GET | `/api/agents/:id` | Yes | Agent run detail (plan, logs, artifacts) |
+| POST | `/api/agents/:id/cancel` | Yes | Cancel a running agent |
+| GET | `/api/agents/:id/logs` | Yes | SSE stream of agent logs (real-time) |
 
 ### Repositories
 | Method | Path | Auth | Description |
@@ -218,7 +248,7 @@ In your GitHub repo **Settings > Webhooks**:
 | `messages` | Chat messages (user + AI) per discussion |
 | `activity_log` | Audit trail of all actions |
 | `webhook_events` | GitHub webhook deduplication and tracking |
-| `agent_runs` | AI agent execution records (Phase 4) |
+| `agent_runs` | AI agent execution records (plan, status, logs, artifacts) |
 | `code_context_cache` | Cached code snippets for AI context |
 | `issue_embeddings` | Vector embeddings for semantic search |
 
@@ -235,12 +265,55 @@ Uses **Moonshot/Kimi** via the `openai` npm package with `baseURL: https://api.m
 | Issue analysis | `moonshot-v1-32k` | Single issue classification |
 | Chat responses | `moonshot-v1-128k` | 50 messages + document + issue body |
 | Document synthesis | `moonshot-v1-32k` | All messages + current document |
+| Plan generation | `moonshot-v1-32k` | Issue + discussion document |
+| Code generation | `moonshot-v1-128k` | Issue + plan + file descriptions |
+
+## Agent System (Phase 4)
+
+The agent system enables AI-powered implementation from GitHub issues:
+
+### Agent Lifecycle
+
+```
+User clicks "Start Implementation" on issue detail page
+    ↓
+Planning: AI generates implementation plan (files, tests, approach)
+    ↓
+Coding: AI generates code for each planned file
+    ↓
+Testing: (placeholder — requires AIOSandbox Docker for real execution)
+    ↓
+Review: Artifacts ready for human review
+    ↓
+Complete/Failed: Terminal state with artifacts and logs
+```
+
+### Agent Status Machine
+
+| Status | Description |
+|--------|-------------|
+| `planning` | Generating implementation plan via AI |
+| `coding` | Generating code changes |
+| `testing` | Running lint/test iterations (requires sandbox) |
+| `review` | Awaiting human review |
+| `completed` | Successfully completed |
+| `failed` | Failed (see logs for details) |
+| `cancelled` | Cancelled by user |
+
+### Iteration Policy (for future AIOSandbox)
+
+| Stage | Max Iterations | Auto-fix | On Failure |
+|-------|----------------|----------|------------|
+| Lint errors | 3 | Yes | Handoff to human |
+| Type errors | 3 | Yes | Handoff to human |
+| Local tests | 1 | No | Handoff to human |
+| Build | 2 | Yes | Handoff to human |
 
 ## Development
 
 ```bash
 pnpm typecheck          # Type check all packages
-pnpm test               # Run all tests (53 tests)
+pnpm test               # Run all tests (60 tests)
 pnpm lint               # Lint web app
 pnpm --filter @skynet/db db:generate   # Generate migration after schema changes
 ```
@@ -284,17 +357,136 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 - [x] One-way discussion finalization
 - [x] Discussion UI (60/40 chat/document split)
 
-### Sprint 4 (Planned)
-- [ ] AIOSandbox agent runtime
-- [ ] Implementation plan generation
-- [ ] Sandboxed code generation
-- [ ] PR creation from agent output
+### Sprint 4 (Complete)
+- [x] Agent run DB module (create, list, detail, cancel, logs)
+- [x] AI implementation plan generation
+- [x] AI code generation from plans
+- [x] Agent execution engine with progress tracking
+- [x] Agent API routes (CRUD + SSE log streaming)
+- [x] Agent UI (list page, detail page with live logs)
+- [x] "Start Implementation" button on issue detail
+- [x] GitHub branch/PR creation utilities
+- [x] Switched to `DATABASE_URL` (from `MATRIXONE_URL`)
 
 ### Sprint 5 (Planned)
+- [ ] AIOSandbox Docker integration (isolated agent execution)
+- [ ] Real lint/test iteration loops in sandbox
+- [ ] Automatic PR creation from agent output
 - [ ] Role-based views
 - [ ] Notifications
 - [ ] Performance optimization
 - [ ] Onboarding flow
+
+## Credential Setup Guide
+
+### 1. DATABASE_URL (MatrixOne)
+
+MatrixOne uses the MySQL wire protocol. Install and run MatrixOne locally:
+
+```bash
+# Default connection for local MatrixOne
+DATABASE_URL="mysql://root:111@127.0.0.1:6001/skynet"
+```
+
+- **Host**: `127.0.0.1` (local) or your MatrixOne server IP
+- **Port**: `6001` (MatrixOne default)
+- **User/Password**: `root`/`111` (MatrixOne default)
+- **Database**: `skynet` (created during setup)
+
+### 2. JWT_SECRET
+
+Used to sign and verify JWT session tokens. Generate a strong random string:
+
+```bash
+# Generate a 64-character random secret
+openssl rand -base64 48
+```
+
+Set the output as your `JWT_SECRET`. This can be any strong random string (32+ characters recommended).
+
+### 3. GitHub OAuth App (GITHUB_CLIENT_ID + GITHUB_CLIENT_SECRET)
+
+1. Go to **GitHub Settings > Developer Settings > OAuth Apps > New OAuth App**
+   - Or visit: https://github.com/settings/applications/new
+2. Fill in:
+   - **Application name**: `Skynet` (or any name)
+   - **Homepage URL**: `http://localhost:3000`
+   - **Authorization callback URL**: `http://localhost:3000/api/auth/github/callback`
+3. Click **Register Application**
+4. Copy the **Client ID** → `GITHUB_CLIENT_ID`
+5. Click **Generate a new client secret** → copy it → `GITHUB_CLIENT_SECRET`
+
+### 4. GITHUB_TOKEN (Personal Access Token)
+
+Used for server-side GitHub API calls (fetching issues, creating branches/PRs):
+
+1. Go to **GitHub Settings > Developer Settings > Personal Access Tokens > Fine-grained tokens**
+   - Or visit: https://github.com/settings/tokens?type=beta
+2. Click **Generate new token**
+3. Set:
+   - **Token name**: `skynet-api`
+   - **Expiration**: 90 days (or custom)
+   - **Repository access**: Select repos you want to connect
+   - **Permissions**:
+     - **Issues**: Read and Write
+     - **Contents**: Read and Write (for branch/PR creation)
+     - **Pull requests**: Read and Write
+     - **Metadata**: Read-only
+4. Click **Generate token** → copy → `GITHUB_TOKEN`
+
+### 5. GITHUB_WEBHOOK_SECRET
+
+Used to verify GitHub webhook signatures (HMAC-SHA256):
+
+```bash
+# Generate a random webhook secret
+openssl rand -hex 32
+```
+
+Set this as `GITHUB_WEBHOOK_SECRET` in `.env` AND in your GitHub repo webhook configuration.
+
+### 6. MOONSHOT_API_KEY (Kimi AI)
+
+Used for AI issue analysis, chat, document synthesis, and agent plan/code generation:
+
+1. Visit [platform.moonshot.cn](https://platform.moonshot.cn)
+2. Register/login
+3. Navigate to **API Keys** section
+4. Create a new API key
+5. Copy the key (starts with `sk-`) → `MOONSHOT_API_KEY`
+
+**Note**: Ensure your account has sufficient balance. The platform uses:
+- `moonshot-v1-32k` for analysis, synthesis, and plan generation
+- `moonshot-v1-128k` for chat and code generation
+
+### Complete .env Example
+
+```bash
+# Database (MatrixOne)
+DATABASE_URL="mysql://root:111@127.0.0.1:6001/skynet"
+
+# GitHub OAuth App
+GITHUB_CLIENT_ID="Ov23ct..."
+GITHUB_CLIENT_SECRET="443b8f..."
+
+# JWT Session Secret (generate with: openssl rand -base64 48)
+JWT_SECRET="your-strong-random-secret-here"
+
+# GitHub PAT (fine-grained token with Issues + Contents + PR permissions)
+GITHUB_TOKEN="ghp_xxxxxxxxxxxx"
+
+# GitHub Webhook Secret (generate with: openssl rand -hex 32)
+GITHUB_WEBHOOK_SECRET="your-webhook-signing-secret"
+
+# Moonshot/Kimi AI API Key
+MOONSHOT_API_KEY="sk-your-moonshot-api-key"
+```
+
+After creating `.env` at the project root, symlink it for Next.js:
+
+```bash
+ln -sf ../../.env apps/web/.env
+```
 
 ## License
 

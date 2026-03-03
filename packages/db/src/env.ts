@@ -1,23 +1,13 @@
-function resolveMatrixOneUrl(): string | null {
-  return process.env.MATRIXONE_URL ?? process.env.DATABASE_URL ?? null;
+export function hasDatabaseUrl(): boolean {
+  return Boolean(process.env.DATABASE_URL);
 }
 
-export function hasMatrixOneUrl(): boolean {
-  return Boolean(resolveMatrixOneUrl());
-}
+export function getDatabaseUrl(): string {
+  const url = process.env.DATABASE_URL;
 
-export function getMatrixOneUrl(): string {
-  const matrixOneUrl = resolveMatrixOneUrl();
-
-  if (!matrixOneUrl) {
-    throw new Error(
-      "MATRIXONE_URL is required (DATABASE_URL is accepted for compatibility).",
-    );
+  if (!url) {
+    throw new Error("DATABASE_URL is required.");
   }
 
-  return matrixOneUrl;
+  return url;
 }
-
-// Backward-compatible aliases for existing imports.
-export const hasDatabaseUrl = hasMatrixOneUrl;
-export const getDatabaseUrl = getMatrixOneUrl;

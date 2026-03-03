@@ -91,6 +91,62 @@ export class GitHubClient {
       `/repos/${owner}/${repo}/issues?state=${state}&page=${page}&per_page=${perPage}&sort=updated&direction=desc`,
     );
   }
+
+  // ── Git Data API (for agent PR workflow) ──
+
+  async getRef(
+    owner: string,
+    repo: string,
+    ref: string,
+  ): Promise<{ ref: string; object: { sha: string; type: string } }> {
+    return this.request(`/repos/${owner}/${repo}/git/ref/${ref}`);
+  }
+
+  async createRef(
+    owner: string,
+    repo: string,
+    ref: string,
+    sha: string,
+  ): Promise<{ ref: string; object: { sha: string } }> {
+    return this.request(`/repos/${owner}/${repo}/git/refs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ref, sha }),
+    });
+  }
+
+  async createBranch(
+    owner: string,
+    repo: string,
+    branchName: string,
+    fromBranch: string = "main",
+  ): Promise<string> {
+    const base = await this.getRef(owner, repo, `heads/${fromBranch}`);
+    const result = await this.createRef(
+      owner,
+      repo,
+      `refs/heads/${branchName}`,
+      base.object.sha,
+    );
+    return result.object.sha;
+  }
+
+  async createPullRequest(
+    owner: string,
+    repo: string,
+    options: {
+      title: string;
+      body: string;
+      head: string;
+      base: string;
+    },
+  ): Promise<{ number: number; html_url: string }> {
+    return this.request(`/repos/${owner}/${repo}/pulls`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(options),
+    });
+  }
 }
 
 let instance: GitHubClient | null = null;
