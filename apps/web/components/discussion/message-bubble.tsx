@@ -1,5 +1,5 @@
 interface MessageBubbleProps {
-  authorType: "user" | "ai";
+  authorType: "user" | "ai" | "system";
   content: string;
   createdAt?: string;
   isStreaming?: boolean;
@@ -12,6 +12,25 @@ export function MessageBubble({
   isStreaming,
 }: MessageBubbleProps) {
   const isAI = authorType === "ai";
+  const isSystem = authorType === "system";
+
+  if (isSystem) {
+    return (
+      <div className="flex justify-center">
+        <div className="max-w-[90%] rounded-lg bg-amber-50 px-4 py-2 text-xs text-amber-800 border border-amber-200">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">System</span>
+            {createdAt && (
+              <span className="text-amber-500">
+                {new Date(createdAt).toLocaleTimeString()}
+              </span>
+            )}
+          </div>
+          <div className="mt-1 whitespace-pre-wrap">{content}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex ${isAI ? "justify-start" : "justify-end"}`}>

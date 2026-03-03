@@ -9,7 +9,7 @@ import { FinalizeButton } from "@/components/discussion/finalize-button";
 
 interface Message {
   id: string;
-  authorType: "user" | "ai";
+  authorType: "user" | "ai" | "system";
   content: string;
   createdAt: string;
 }
