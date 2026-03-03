@@ -1,13 +1,16 @@
 import { getAIClient, MODELS } from "./client";
 
 interface SynthesisMessage {
-  role: "user" | "ai";
+  role: "user" | "ai" | "system";
   content: string;
 }
 
-interface SynthesisContext {
+export interface SynthesisContext {
   issueTitle: string;
   issueBody: string | null;
+  issueLabels?: string[];
+  aiSummary?: string | null;
+  orgContext?: string;
 }
 
 const SYSTEM_PROMPT = `You are a document synthesizer for the Skynet development platform. Your job is to create and update a structured living document from team discussion messages about a GitHub issue.
@@ -43,11 +46,20 @@ export async function synthesizeDocument(
   const userContent = [
     `## Issue\nTitle: ${issueContext.issueTitle}`,
     issueContext.issueBody ? `Body:\n${issueContext.issueBody}` : "",
+    issueContext.issueLabels && issueContext.issueLabels.length > 0
+      ? `Labels: ${issueContext.issueLabels.join(", ")}`
+      : "",
+    issueContext.aiSummary ? `AI Summary: ${issueContext.aiSummary}` : "",
+    issueContext.orgContext
+      ? `## Project Context\n${issueContext.orgContext}`
+      : "",
     currentDoc ? `## Current Document\n${currentDoc}` : "",
     `## Discussion Messages`,
-    ...messages.map(
-      (m) => `[${m.role === "ai" ? "AI" : "User"}] ${m.content}`,
-    ),
+    ...messages
+      .filter((m) => m.role !== "system")
+      .map(
+        (m) => `[${m.role === "ai" ? "AI" : "User"}] ${m.content}`,
+      ),
   ]
     .filter(Boolean)
     .join("\n\n");

@@ -3,9 +3,12 @@ import type { JWTPayload } from "jose";
 
 import { withAuth } from "@/lib/auth/with-auth";
 import { getOrCreateDiscussion, insertMessage } from "@skynet/db";
+import { triggerAIResponse } from "@/lib/ai/auto-respond";
 import type { ApiErrorResponse } from "@skynet/sdk";
 
 export const runtime = "nodejs";
+
+const AI_MENTION_PATTERN = /(?:^|[\s,.!?])@(ai|skynet)\b/i;
 
 export const POST = withAuth(
   async (
@@ -46,9 +49,19 @@ export const POST = withAuth(
         content,
       });
 
+      // Check if the message @mentions AI
+      const shouldTriggerAI = AI_MENTION_PATTERN.test(content);
+
+      if (shouldTriggerAI) {
+        // Fire-and-forget: trigger AI response asynchronously
+        triggerAIResponse(params.id).catch((err) => {
+          console.error("[skynet] auto AI response failed:", err);
+        });
+      }
+
       return NextResponse.json({
         message: { id: messageId, content, authorType: "user" },
-        aiResponsePending: true,
+        aiResponsePending: shouldTriggerAI,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to post message";

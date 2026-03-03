@@ -7,7 +7,7 @@ import { messages } from "./schema";
 export interface InsertMessageInput {
   discussionId: string;
   authorId: string | null;
-  authorType: "user" | "ai";
+  authorType: "user" | "ai" | "system";
   content: string;
   aiContext?: unknown;
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { verifyWebhookSignature } from "@/lib/github/webhook-verify";
 import { syncIssueFromWebhook } from "@/lib/github/sync-issue";
+import { syncPRFromWebhook } from "@/lib/github/sync-pr";
 import { insertWebhookEvent, findWebhookEventById, markWebhookEventProcessed } from "@skynet/db";
 
 export const runtime = "nodejs";
@@ -45,6 +46,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (handled.includes(action)) {
       try {
         await syncIssueFromWebhook(payload);
+        await markWebhookEventProcessed(deliveryId).catch(() => {});
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        await markWebhookEventProcessed(deliveryId, message).catch(() => {});
+      }
+    }
+  }
+
+  // Process pull request events
+  if (event === "pull_request") {
+    const payload = JSON.parse(body);
+    const action = payload.action;
+    const handled = ["opened", "synchronize", "edited", "closed"];
+
+    if (handled.includes(action)) {
+      try {
+        await syncPRFromWebhook(payload);
         await markWebhookEventProcessed(deliveryId).catch(() => {});
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";

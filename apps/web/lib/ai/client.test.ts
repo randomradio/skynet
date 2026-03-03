@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 describe("AI client", () => {
-  const originalEnv = process.env.MOONSHOT_API_KEY;
+  const originalEnv = process.env.AI_API_KEY;
 
   beforeEach(() => {
     vi.resetModules();
@@ -9,42 +9,42 @@ describe("AI client", () => {
 
   afterEach(() => {
     if (originalEnv !== undefined) {
-      process.env.MOONSHOT_API_KEY = originalEnv;
+      process.env.AI_API_KEY = originalEnv;
     } else {
-      delete process.env.MOONSHOT_API_KEY;
+      delete process.env.AI_API_KEY;
     }
   });
 
   it("hasAIConfig returns false when key is missing", async () => {
-    delete process.env.MOONSHOT_API_KEY;
+    delete process.env.AI_API_KEY;
     const { hasAIConfig } = await import("./client");
     expect(hasAIConfig()).toBe(false);
   });
 
   it("hasAIConfig returns true when key is set", async () => {
-    process.env.MOONSHOT_API_KEY = "test-key";
+    process.env.AI_API_KEY = "test-key";
     const { hasAIConfig } = await import("./client");
     expect(hasAIConfig()).toBe(true);
   });
 
   it("getAIClient throws when key is missing", async () => {
-    delete process.env.MOONSHOT_API_KEY;
+    delete process.env.AI_API_KEY;
     const { getAIClient } = await import("./client");
-    expect(() => getAIClient()).toThrow("MOONSHOT_API_KEY is required");
+    expect(() => getAIClient()).toThrow("AI_API_KEY is required");
   });
 
   it("getAIClient returns OpenAI instance with correct baseURL", async () => {
-    process.env.MOONSHOT_API_KEY = "test-key";
+    process.env.AI_API_KEY = "test-key";
     const { getAIClient } = await import("./client");
     const client = getAIClient();
     expect(client).toBeDefined();
-    expect(client.baseURL).toBe("https://api.moonshot.cn/v1");
+    expect(client.baseURL).toBe("https://api.magikcloud.cn/v1");
   });
 
   it("exports model constants", async () => {
     const { MODELS } = await import("./client");
-    expect(MODELS.fast).toBe("moonshot-v1-8k");
-    expect(MODELS.standard).toBe("moonshot-v1-32k");
-    expect(MODELS.long).toBe("moonshot-v1-128k");
+    expect(MODELS.fast).toBe("ep-deepseek-v3-2-104138");
+    expect(MODELS.standard).toBe("ep-deepseek-v3-2-104138");
+    expect(MODELS.long).toBe("ep-deepseek-v3-2-104138");
   });
 });

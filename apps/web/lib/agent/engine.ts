@@ -76,7 +76,7 @@ export async function startAgentRun(
   }
 
   if (!hasAIConfig()) {
-    throw new Error("AI configuration (MOONSHOT_API_KEY) is required for agent runs");
+    throw new Error("AI configuration (AI_API_KEY) is required for agent runs");
   }
 
   const issue = issueResult.issue;

@@ -130,7 +130,7 @@ export const messages = mysqlTable("messages", {
   id: varchar("id", { length: 36 }).primaryKey(),
   discussionId: varchar("discussion_id", { length: 36 }).notNull(),
   authorId: varchar("author_id", { length: 36 }),
-  authorType: mysqlEnum("author_type", ["user", "ai"]).notNull(),
+  authorType: mysqlEnum("author_type", ["user", "ai", "system"]).notNull(),
   content: text("content").notNull(),
   aiContext: json("ai_context"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -197,4 +197,26 @@ export const issueEmbeddings = mysqlTable("issue_embeddings", {
   embedding: json("embedding"),
   model: varchar("model", { length: 50 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const pullRequests = mysqlTable("pull_requests", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  githubId: bigint("github_id", { mode: "number" }).notNull().unique(),
+  number: int("number").notNull(),
+  repoOwner: varchar("repo_owner", { length: 100 }).notNull(),
+  repoName: varchar("repo_name", { length: 100 }).notNull(),
+  title: text("title").notNull(),
+  body: text("body"),
+  state: mysqlEnum("state", ["open", "closed", "merged"]).notNull(),
+  headBranch: varchar("head_branch", { length: 200 }).notNull(),
+  baseBranch: varchar("base_branch", { length: 200 }).notNull(),
+  authorGithubId: bigint("author_github_id", { mode: "number" }),
+  linkedIssueNumbers: json("linked_issue_numbers"), // number[]
+  additions: int("additions"),
+  deletions: int("deletions"),
+  changedFiles: int("changed_files"),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+  mergedAt: timestamp("merged_at"),
+  syncedAt: timestamp("synced_at").defaultNow().notNull(),
 });

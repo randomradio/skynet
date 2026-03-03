@@ -12,6 +12,25 @@ export interface GitHubIssue {
   updated_at: string;
 }
 
+export interface GitHubPullRequest {
+  id: number;
+  number: number;
+  title: string;
+  body: string | null;
+  state: "open" | "closed";
+  merged: boolean;
+  head: { ref: string; sha: string };
+  base: { ref: string };
+  user: { login: string; id: number };
+  labels: Array<{ name: string }>;
+  additions: number;
+  deletions: number;
+  changed_files: number;
+  created_at: string;
+  updated_at: string;
+  merged_at: string | null;
+}
+
 export interface GitHubRepository {
   id: number;
   name: string;
@@ -146,6 +165,33 @@ export class GitHubClient {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(options),
     });
+  }
+
+  // ── Pull Request read API ──
+
+  async getPullRequest(
+    owner: string,
+    repo: string,
+    number: number,
+  ): Promise<GitHubPullRequest> {
+    return this.request<GitHubPullRequest>(
+      `/repos/${owner}/${repo}/pulls/${number}`,
+    );
+  }
+
+  async listPullRequestsForRepo(
+    owner: string,
+    repo: string,
+    options: {
+      state?: "open" | "closed" | "all";
+      page?: number;
+      perPage?: number;
+    } = {},
+  ): Promise<GitHubPullRequest[]> {
+    const { state = "open", page = 1, perPage = 30 } = options;
+    return this.request<GitHubPullRequest[]>(
+      `/repos/${owner}/${repo}/pulls?state=${state}&page=${page}&per_page=${perPage}&sort=updated&direction=desc`,
+    );
   }
 }
 

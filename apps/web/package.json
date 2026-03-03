@@ -11,6 +11,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@skynet/config": "workspace:*",
     "@skynet/db": "workspace:*",
     "@skynet/sdk": "workspace:*",
     "jose": "^6.1.0",
