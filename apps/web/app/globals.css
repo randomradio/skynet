@@ -1,43 +1,42 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────
-   Skynet — Refined Dark Theme
-   Warm charcoal palette, high-contrast text,
-   clear hierarchy, easy on the eyes.
+   Skynet — Light Theme (Stripe-inspired)
+   Clean whites, warm grays, crisp hierarchy.
    ───────────────────────────────────────────── */
 
 :root {
-  /* Backgrounds — warm charcoal, lifted from pure black */
-  --bg-root: #0f1117;
-  --bg-primary: #13151c;
-  --bg-secondary: #181b24;
-  --bg-surface: #1c1f2b;
-  --bg-elevated: #22263a;
-  --bg-hover: #272c3e;
+  /* Backgrounds — clean whites and very light grays */
+  --bg-root: #f6f9fc;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f0f3f7;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f0f3f7;
+  --bg-hover: #e9ecf1;
 
-  /* Borders — visible but calm */
-  --border-subtle: rgba(148, 163, 184, 0.08);
-  --border-default: rgba(148, 163, 184, 0.13);
-  --border-bright: rgba(148, 163, 184, 0.22);
+  /* Borders — subtle gray strokes */
+  --border-subtle: rgba(60, 66, 87, 0.06);
+  --border-default: rgba(60, 66, 87, 0.12);
+  --border-bright: rgba(60, 66, 87, 0.22);
 
-  /* Text — warm off-whites, high contrast body text */
-  --text-primary: #ececf1;
-  --text-secondary: #b4b8c4;
-  --text-tertiary: #8a8f9e;
-  --text-quaternary: #5f6475;
+  /* Text — dark navy to mid-grays */
+  --text-primary: #0a2540;
+  --text-secondary: #425466;
+  --text-tertiary: #697386;
+  --text-quaternary: #8792a2;
 
-  /* Accents — desaturated, tasteful, not neon */
-  --accent-blue: #5b9cf5;
-  --accent-purple: #a78bfa;
-  --accent-emerald: #4ade80;
-  --accent-amber: #facc15;
-  --accent-red: #f87171;
-  --accent-cyan: #67e8f9;
+  /* Accents — Stripe-like palette */
+  --accent-blue: #635bff;
+  --accent-purple: #7a73ff;
+  --accent-emerald: #0cad55;
+  --accent-amber: #d97706;
+  --accent-red: #df1b41;
+  --accent-cyan: #067df7;
 
-  /* Glow effects — very subtle */
-  --glow-blue: rgba(91, 156, 245, 0.10);
-  --glow-purple: rgba(167, 139, 250, 0.10);
-  --glow-emerald: rgba(74, 222, 128, 0.08);
+  /* Glow effects — very subtle on light */
+  --glow-blue: rgba(99, 91, 255, 0.08);
+  --glow-purple: rgba(122, 115, 255, 0.08);
+  --glow-emerald: rgba(12, 173, 85, 0.06);
 
   /* Fonts */
   --font-sans: var(--font-geist-sans), "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -62,17 +61,6 @@ body {
   font-feature-settings: "ss01", "ss02", "cv01";
 }
 
-/* Very faint grain — adds subtle texture without distraction */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.018;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-}
-
 /* Scrollbar — thin, unobtrusive */
 ::-webkit-scrollbar {
   width: 6px;
@@ -84,19 +72,19 @@ body::before {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.13);
+  background: rgba(60, 66, 87, 0.15);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.22);
+  background: rgba(60, 66, 87, 0.25);
 }
 
 /* ── Selection ───────────────────────────────── */
 
 ::selection {
-  background: rgba(91, 156, 245, 0.25);
-  color: #fff;
+  background: rgba(99, 91, 255, 0.15);
+  color: #0a2540;
 }
 
 /* ── Animations ──────────────────────────────── */
@@ -113,7 +101,7 @@ body::before {
 
 @keyframes pulseGlow {
   0%, 100% { box-shadow: 0 0 6px var(--glow-blue); }
-  50% { box-shadow: 0 0 16px var(--glow-blue), 0 0 32px rgba(91, 156, 245, 0.05); }
+  50% { box-shadow: 0 0 16px var(--glow-blue), 0 0 32px rgba(99, 91, 255, 0.04); }
 }
 
 @keyframes shimmer {
@@ -155,12 +143,13 @@ body::before {
 
 /* ── Utility Classes ─────────────────────────── */
 
-/* Glass surface */
+/* Glass surface — light frosted glass */
 .glass {
-  background: rgba(28, 31, 43, 0.65);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-default);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 /* Card with hover glow — restrained */
@@ -168,8 +157,8 @@ body::before {
   transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
 .card-glow:hover {
-  box-shadow: 0 0 0 1px var(--glow-blue), 0 2px 12px rgba(91, 156, 245, 0.04);
-  border-color: rgba(91, 156, 245, 0.18);
+  box-shadow: 0 0 0 1px var(--glow-blue), 0 4px 16px rgba(99, 91, 255, 0.06);
+  border-color: rgba(99, 91, 255, 0.2);
 }
 
 /* Gradient text */
@@ -289,10 +278,10 @@ body::before {
   line-height: 1.6;
 }
 
-/* Mesh gradient background — warmer, subtler */
+/* Soft gradient background — light subtle tint */
 .mesh-gradient {
   background:
-    radial-gradient(ellipse 80% 50% at 15% 5%, rgba(91, 156, 245, 0.04) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 70% at 85% 90%, rgba(167, 139, 250, 0.025) 0%, transparent 70%),
+    radial-gradient(ellipse 80% 50% at 15% 5%, rgba(99, 91, 255, 0.03) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 70% at 85% 90%, rgba(122, 115, 255, 0.02) 0%, transparent 70%),
     var(--bg-root);
 }

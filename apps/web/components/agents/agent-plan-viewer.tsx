@@ -22,9 +22,9 @@ interface Plan {
 }
 
 const ACTION_STYLES: Record<string, string> = {
-  create: "bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20",
+  create: "bg-emerald-500/10 text-emerald-700 ring-1 ring-inset ring-emerald-500/20",
   modify: "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] ring-1 ring-inset ring-[var(--accent-blue)]/20",
-  delete: "bg-red-500/10 text-red-400 ring-1 ring-inset ring-red-500/20",
+  delete: "bg-red-500/10 text-red-600 ring-1 ring-inset ring-red-500/20",
 };
 
 export function AgentPlanViewer({ plan }: { plan: Plan | null }) {
@@ -57,10 +57,10 @@ export function AgentPlanViewer({ plan }: { plan: Plan | null }) {
           <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Complexity</span>
           <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${
             plan.estimatedComplexity === "high"
-              ? "bg-red-500/10 text-red-400"
+              ? "bg-red-500/10 text-red-600"
               : plan.estimatedComplexity === "medium"
-                ? "bg-amber-500/10 text-amber-400"
-                : "bg-emerald-500/10 text-emerald-400"
+                ? "bg-amber-500/10 text-amber-600"
+                : "bg-emerald-500/10 text-emerald-700"
           }`}>
             {plan.estimatedComplexity}
           </span>
@@ -118,10 +118,10 @@ export function AgentPlanViewer({ plan }: { plan: Plan | null }) {
       {plan.risks && plan.risks.length > 0 && (
         <div>
           <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Risks</h3>
-          <ul className="mt-2 space-y-1 text-xs text-amber-400/90">
+          <ul className="mt-2 space-y-1 text-xs text-amber-700">
             {plan.risks.map((r, i) => (
               <li key={i} className="flex items-start gap-2">
-                <span className="mt-0.5 text-amber-500/60">!</span>
+                <span className="mt-0.5 text-amber-500">!</span>
                 {r}
               </li>
             ))}

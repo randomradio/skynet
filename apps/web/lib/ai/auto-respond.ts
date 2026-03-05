@@ -20,6 +20,7 @@ import type { IssueDetail } from "@skynet/db";
  */
 export async function triggerAIResponse(
   issueId: string,
+  parentId?: string,
 ): Promise<string | null> {
   if (!hasAIConfig()) return null;
 
@@ -40,6 +41,7 @@ export async function triggerAIResponse(
     authorId: null,
     authorType: "ai",
     content,
+    parentId,
   });
 
   // Auto-synthesize if enough messages

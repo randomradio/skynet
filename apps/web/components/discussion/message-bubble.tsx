@@ -43,9 +43,9 @@ export function MessageBubble({
   if (isSystem) {
     return (
       <div className="flex justify-center">
-        <div className="max-w-[90%] rounded-lg bg-amber-500/5 px-4 py-2 text-xs text-amber-400/80 border border-amber-500/10">
+        <div className="max-w-[90%] rounded-lg bg-amber-500/5 px-4 py-2 text-xs text-amber-600/80 border border-amber-500/10">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-amber-400/60">System</span>
+            <span className="font-medium text-amber-600/60">System</span>
             {createdAt && (
               <span className="text-amber-500/40">
                 {new Date(createdAt).toLocaleTimeString()}
@@ -94,12 +94,12 @@ export function MessageBubble({
         >
           <div className="mb-1 flex items-center gap-2">
             <span className={`text-xs font-medium ${
-              alignRight ? "text-blue-200" : "text-[var(--text-quaternary)]"
+              alignRight ? "text-blue-600" : "text-[var(--text-quaternary)]"
             }`}>
               {displayName}
             </span>
             {createdAt && (
-              <span className={`text-xs ${alignRight ? "text-blue-200/60" : "text-[var(--text-quaternary)]"}`}>
+              <span className={`text-xs ${alignRight ? "text-blue-600/60" : "text-[var(--text-quaternary)]"}`}>
                 {new Date(createdAt).toLocaleTimeString()}
               </span>
             )}

@@ -30,6 +30,8 @@ interface PlanGenerationContext {
   repoOwner: string;
   repoName: string;
   discussionDocument: string | null;
+  fileTree?: string | null;
+  relevantFiles?: Array<{ path: string; content: string }>;
 }
 
 const SYSTEM_PROMPT = `You are an expert software architect generating implementation plans for GitHub issues. Given an issue and optional discussion context, produce a structured JSON implementation plan.
@@ -85,6 +87,15 @@ export async function generateImplementationPlan(
   }
   if (context.discussionDocument) {
     parts.push(`\n## Discussion Document (team decisions)\n${context.discussionDocument}`);
+  }
+  if (context.fileTree) {
+    parts.push(`\n## Repository File Tree\n\`\`\`\n${context.fileTree.slice(0, 5000)}\n\`\`\``);
+  }
+  if (context.relevantFiles && context.relevantFiles.length > 0) {
+    parts.push("\n## Relevant Source Files");
+    for (const f of context.relevantFiles) {
+      parts.push(`\n### ${f.path}\n\`\`\`\n${f.content.slice(0, 8000)}\n\`\`\``);
+    }
   }
 
   const response = await client.chat.completions.create({

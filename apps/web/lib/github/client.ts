@@ -41,6 +41,16 @@ export interface GitHubRepository {
   default_branch: string;
 }
 
+export interface GitHubPRFile {
+  sha: string;
+  filename: string;
+  status: "added" | "removed" | "modified" | "renamed" | "copied" | "changed" | "unchanged";
+  additions: number;
+  deletions: number;
+  changes: number;
+  patch?: string;
+}
+
 export interface RateLimitInfo {
   remaining: number;
   limit: number;
@@ -176,6 +186,16 @@ export class GitHubClient {
   ): Promise<GitHubPullRequest> {
     return this.request<GitHubPullRequest>(
       `/repos/${owner}/${repo}/pulls/${number}`,
+    );
+  }
+
+  async listPullRequestFiles(
+    owner: string,
+    repo: string,
+    number: number,
+  ): Promise<GitHubPRFile[]> {
+    return this.request<GitHubPRFile[]>(
+      `/repos/${owner}/${repo}/pulls/${number}/files?per_page=100`,
     );
   }
 

@@ -147,8 +147,8 @@ export function LandingAuthEntry(): React.ReactElement {
 
       {error ? (
         <div className="mt-2 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2">
-          <p className="text-xs font-medium text-red-400">Error</p>
-          <p className="text-xs text-red-300">{error}</p>
+          <p className="text-xs font-medium text-red-600">Error</p>
+          <p className="text-xs text-red-500">{error}</p>
         </div>
       ) : null}
     </section>

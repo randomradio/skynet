@@ -76,8 +76,8 @@ export function FileViewer({ content, language, path, findings, onFindingClick }
           >
             <div className="flex items-center gap-2 text-xs">
               <span className={`font-bold uppercase ${
-                finding.severity === "error" ? "text-red-400" :
-                finding.severity === "warning" ? "text-amber-400" : "text-blue-400"
+                finding.severity === "error" ? "text-red-600" :
+                finding.severity === "warning" ? "text-amber-600" : "text-blue-600"
               }`}>
                 {finding.severity}
               </span>

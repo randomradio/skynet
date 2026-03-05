@@ -4,6 +4,7 @@ import type { JWTPayload } from "jose";
 import { withAuth } from "@/lib/auth/with-auth";
 import { hasGitHubToken } from "@/lib/github/client";
 import { fullSyncRepository } from "@/lib/github/sync-issue";
+import { fullSyncPullRequests } from "@/lib/github/sync-pr";
 import type { ApiErrorResponse } from "@skynet/sdk";
 
 export const runtime = "nodejs";
@@ -47,11 +48,15 @@ export const POST = withAuth(
     }
 
     try {
-      const synced = await fullSyncRepository(owner, name);
+      const [issueSynced, prSynced] = await Promise.all([
+        fullSyncRepository(owner, name),
+        fullSyncPullRequests(owner, name),
+      ]);
       return NextResponse.json({
         repositoryId: params.id,
-        synced,
-        message: `Synced ${synced} issues from ${owner}/${name}`,
+        synced: issueSynced,
+        prSynced,
+        message: `Synced ${issueSynced} issues and ${prSynced} pull requests from ${owner}/${name}`,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Sync failed";

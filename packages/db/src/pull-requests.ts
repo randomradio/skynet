@@ -1,7 +1,8 @@
 import crypto from "node:crypto";
-import { eq, and, sql } from "drizzle-orm";
+import { count, desc, eq, and, sql } from "drizzle-orm";
 
 import { getDb } from "./client";
+import { hasDatabaseUrl } from "./env";
 import { pullRequests } from "./schema";
 
 export interface UpsertPullRequestInput {
@@ -83,6 +84,77 @@ export async function upsertPullRequestFromGitHub(
     syncedAt: new Date(),
   });
   return id;
+}
+
+export interface ListPullRequestsInput {
+  page: number;
+  limit: number;
+  repoOwner: string;
+  repoName: string;
+  state?: "open" | "closed" | "merged";
+}
+
+export interface ListPullRequestsResult {
+  items: Array<typeof pullRequests.$inferSelect>;
+  page: number;
+  limit: number;
+  total: number;
+}
+
+export async function listPullRequestsPage(
+  input: ListPullRequestsInput,
+): Promise<ListPullRequestsResult> {
+  const page = Math.max(1, Number.isNaN(input.page) ? 1 : input.page);
+  const limit = Math.min(Math.max(1, Number.isNaN(input.limit) ? 20 : input.limit), 100);
+
+  if (!hasDatabaseUrl()) {
+    return { items: [], page, limit, total: 0 };
+  }
+
+  const db = getDb();
+  const offset = (page - 1) * limit;
+
+  const conditions = [
+    eq(pullRequests.repoOwner, input.repoOwner),
+    eq(pullRequests.repoName, input.repoName),
+  ];
+  if (input.state) {
+    conditions.push(eq(pullRequests.state, input.state));
+  }
+
+  const whereClause = and(...conditions);
+
+  const rows = await db
+    .select()
+    .from(pullRequests)
+    .where(whereClause)
+    .orderBy(desc(pullRequests.updatedAt), desc(pullRequests.syncedAt))
+    .limit(limit)
+    .offset(offset);
+
+  const countRows = await db
+    .select({ total: count() })
+    .from(pullRequests)
+    .where(whereClause);
+
+  return {
+    items: rows,
+    page,
+    limit,
+    total: Number(countRows[0]?.total ?? 0),
+  };
+}
+
+export async function getPullRequestById(
+  id: string,
+): Promise<typeof pullRequests.$inferSelect | null> {
+  const db = getDb();
+  const rows = await db
+    .select()
+    .from(pullRequests)
+    .where(eq(pullRequests.id, id))
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 export async function getPullRequestByNumber(

@@ -189,7 +189,7 @@ export default function AgentDetailPage() {
   if (error || !run) {
     return (
       <div className="space-y-2">
-        <p className="text-sm text-red-400">{error ?? "Agent run not found"}</p>
+        <p className="text-sm text-red-600">{error ?? "Agent run not found"}</p>
         <Link href="/agents" className="text-sm text-[var(--accent-blue)] hover:underline">
           Back to agent runs
         </Link>
@@ -211,7 +211,7 @@ export default function AgentDetailPage() {
             <button
               onClick={handlePause}
               disabled={pausing}
-              className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-4 py-1.5 text-xs font-medium text-yellow-400 transition-all hover:bg-yellow-500/20 disabled:opacity-40"
+              className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-4 py-1.5 text-xs font-medium text-yellow-700 transition-all hover:bg-yellow-500/20 disabled:opacity-40"
             >
               {pausing ? "Pausing..." : "Pause"}
             </button>
@@ -221,7 +221,7 @@ export default function AgentDetailPage() {
               <button
                 onClick={handleResume}
                 disabled={resuming}
-                className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-400 transition-all hover:bg-emerald-500/20 disabled:opacity-40"
+                className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-600 transition-all hover:bg-emerald-500/20 disabled:opacity-40"
               >
                 {resuming ? "Resuming..." : "Resume"}
               </button>
@@ -237,7 +237,7 @@ export default function AgentDetailPage() {
             <button
               onClick={handleCancel}
               disabled={cancelling}
-              className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-1.5 text-xs font-medium text-red-400 transition-all hover:bg-red-500/20 disabled:opacity-40"
+              className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-1.5 text-xs font-medium text-red-600 transition-all hover:bg-red-500/20 disabled:opacity-40"
             >
               {cancelling ? "Cancelling..." : "Cancel Run"}
             </button>
@@ -259,9 +259,9 @@ export default function AgentDetailPage() {
             <div className="mt-0.5">
               <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                 run.mode === "review"
-                  ? "bg-amber-500/10 text-amber-400"
+                  ? "bg-amber-500/10 text-amber-600"
                   : run.mode === "interactive"
-                    ? "bg-emerald-500/10 text-emerald-400"
+                    ? "bg-emerald-500/10 text-emerald-600"
                     : "bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]"
               }`}>
                 {run.mode === "review" ? "Code Review" : run.mode === "interactive" ? "Interactive" : "Implementation"}
@@ -346,7 +346,7 @@ export default function AgentDetailPage() {
             <h2 className="mb-3 text-sm font-semibold text-[var(--text-secondary)]">
               Logs ({logs.length})
               {isActive && (
-                <span className="ml-2 inline-flex items-center gap-1.5 text-xs font-normal text-emerald-400">
+                <span className="ml-2 inline-flex items-center gap-1.5 text-xs font-normal text-emerald-600">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -427,7 +427,7 @@ function InteractiveTerminalSection({
       <h2 className="text-sm font-semibold text-[var(--text-secondary)]">
         Terminal
         {isStreaming && (
-          <span className="ml-2 inline-flex items-center gap-1.5 text-xs font-normal text-emerald-400">
+          <span className="ml-2 inline-flex items-center gap-1.5 text-xs font-normal text-emerald-600">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -436,14 +436,14 @@ function InteractiveTerminalSection({
           </span>
         )}
         {isPaused && (
-          <span className="ml-2 text-xs font-normal text-yellow-400">
+          <span className="ml-2 text-xs font-normal text-yellow-700">
             Session paused
           </span>
         )}
       </h2>
       <InteractiveTerminal output={output} isStreaming={isStreaming} />
       {isPaused ? (
-        <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2 text-xs text-yellow-400">
+        <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2 text-xs text-yellow-700">
           Session paused — use Resume to continue or Handoff to reassign.
         </div>
       ) : (

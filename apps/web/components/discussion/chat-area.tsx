@@ -252,7 +252,7 @@ export function ChatArea({
           />
         )}
         {streamError && (
-          <p className="text-center text-xs text-red-400">{streamError}</p>
+          <p className="text-center text-xs text-red-600">{streamError}</p>
         )}
       </div>
 
@@ -305,7 +305,7 @@ export function ChatArea({
       )}
 
       {finalized && (
-        <div className="border-t border-amber-500/20 bg-amber-500/5 p-3 text-center text-xs text-amber-400">
+        <div className="border-t border-amber-500/20 bg-amber-500/5 p-3 text-center text-xs text-amber-600">
           This discussion has been finalized.
         </div>
       )}

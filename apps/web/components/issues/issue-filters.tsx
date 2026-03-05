@@ -9,6 +9,9 @@ interface IssueFiltersProps {
   onAiPriorityChange: (v: string) => void;
 }
 
+const selectClasses =
+  "rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] transition-all focus:border-[var(--accent-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]/30";
+
 export function IssueFilters({
   state,
   aiType,
@@ -18,9 +21,9 @@ export function IssueFilters({
   onAiPriorityChange,
 }: IssueFiltersProps) {
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap gap-2">
       <select
-        className="rounded border px-3 py-1.5 text-sm"
+        className={selectClasses}
         value={state}
         onChange={(e) => onStateChange(e.target.value)}
       >
@@ -30,7 +33,7 @@ export function IssueFilters({
       </select>
 
       <select
-        className="rounded border px-3 py-1.5 text-sm"
+        className={selectClasses}
         value={aiType}
         onChange={(e) => onAiTypeChange(e.target.value)}
       >
@@ -42,7 +45,7 @@ export function IssueFilters({
       </select>
 
       <select
-        className="rounded border px-3 py-1.5 text-sm"
+        className={selectClasses}
         value={aiPriority}
         onChange={(e) => onAiPriorityChange(e.target.value)}
       >

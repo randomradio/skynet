@@ -187,8 +187,8 @@ export default function DashboardPage() {
               >
                 <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
                   ws.status === "active"
-                    ? "bg-emerald-500/10 text-emerald-400"
-                    : "bg-yellow-500/10 text-yellow-400"
+                    ? "bg-emerald-500/10 text-emerald-600"
+                    : "bg-yellow-500/10 text-yellow-700"
                 }`}>
                   {ws.status === "active" ? "Active" : "Paused"}
                 </span>

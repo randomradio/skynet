@@ -13,7 +13,7 @@ export function LogoutButton(): React.ReactElement {
 
   return (
     <button
-      className="rounded-md border px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+      className="rounded-md border border-[var(--border-default)] px-3 py-1.5 text-xs font-medium text-[var(--text-tertiary)] transition-all hover:text-[var(--text-primary)] hover:border-[var(--border-bright)] hover:bg-[var(--bg-hover)]"
       onClick={handleLogout}
       type="button"
     >

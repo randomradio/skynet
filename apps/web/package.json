@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:tunnel": "next dev --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -12,6 +13,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@agent-infra/sandbox": "latest",
     "@skynet/config": "workspace:*",
     "@skynet/db": "workspace:*",
     "@skynet/sdk": "workspace:*",
@@ -19,7 +21,10 @@
     "next": "^15.0.0",
     "openai": "^6.25.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "shiki": "^4.0.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

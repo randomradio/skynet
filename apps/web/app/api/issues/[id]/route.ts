@@ -23,6 +23,7 @@ interface IssueDetailResponse {
     aiAnalysis: unknown;
     duplicateOf: number | null;
     relatedIssues: unknown;
+    lastAnalyzedAt: string | null;
     createdAt: string | null;
     updatedAt: string | null;
     syncedAt: string;
@@ -70,6 +71,7 @@ export const GET = withAuth(
       const response: IssueDetailResponse = {
         issue: {
           ...result.issue,
+          lastAnalyzedAt: toIsoString(result.issue.lastAnalyzedAt),
           createdAt: toIsoString(result.issue.createdAt),
           updatedAt: toIsoString(result.issue.updatedAt),
           syncedAt: result.issue.syncedAt.toISOString(),

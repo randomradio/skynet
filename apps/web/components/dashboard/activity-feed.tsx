@@ -25,11 +25,11 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  issue_created: "bg-emerald-500/10 text-emerald-400",
+  issue_created: "bg-emerald-500/10 text-emerald-700",
   issue_updated: "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]",
   issue_closed: "bg-[var(--bg-elevated)] text-[var(--text-quaternary)]",
-  agent_started: "bg-purple-500/10 text-purple-400",
-  agent_completed: "bg-emerald-500/10 text-emerald-400",
+  agent_started: "bg-purple-500/10 text-purple-700",
+  agent_completed: "bg-emerald-500/10 text-emerald-700",
   pr_created: "bg-[var(--accent-cyan)]/10 text-[var(--accent-cyan)]",
 };
 

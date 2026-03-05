@@ -1,0 +1,37 @@
+services:
+  matrixone:
+    image: matrixorigin/matrixone:2.0.1
+    container_name: skynet-matrixone
+    ports:
+      - "6001:6001"
+    environment:
+      MYSQL_ROOT_PASSWORD: "111"
+    volumes:
+      - mo_data:/mo-data
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-P", "6001", "-u", "root", "-p111"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  sandbox:
+    build:
+      context: .
+      dockerfile: docker/sandbox/Dockerfile
+    image: skynet-sandbox:latest
+    container_name: skynet-sandbox
+    security_opt:
+      - seccomp:unconfined
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    shm_size: "2gb"
+    ports:
+      - "${SANDBOX_PORT:-8180}:8080"
+    environment:
+      WORKSPACE: "/home/gem"
+      TZ: "Asia/Shanghai"
+
+volumes:
+  mo_data:

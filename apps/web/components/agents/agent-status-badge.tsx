@@ -1,12 +1,12 @@
 const STATUS_STYLES: Record<string, { bg: string; label: string }> = {
   planning: { bg: "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]", label: "Planning" },
-  coding: { bg: "bg-purple-500/10 text-purple-400", label: "Coding" },
-  testing: { bg: "bg-amber-500/10 text-amber-400", label: "Testing" },
-  review: { bg: "bg-indigo-500/10 text-indigo-400", label: "Review" },
-  completed: { bg: "bg-emerald-500/10 text-emerald-400", label: "Completed" },
-  failed: { bg: "bg-red-500/10 text-red-400", label: "Failed" },
-  waiting_for_input: { bg: "bg-orange-500/10 text-orange-400", label: "Waiting for Input" },
-  paused: { bg: "bg-yellow-500/10 text-yellow-400", label: "Paused" },
+  coding: { bg: "bg-purple-500/10 text-purple-700", label: "Coding" },
+  testing: { bg: "bg-amber-500/10 text-amber-700", label: "Testing" },
+  review: { bg: "bg-indigo-500/10 text-indigo-700", label: "Review" },
+  completed: { bg: "bg-emerald-500/10 text-emerald-700", label: "Completed" },
+  failed: { bg: "bg-red-500/10 text-red-600", label: "Failed" },
+  waiting_for_input: { bg: "bg-orange-500/10 text-orange-600", label: "Waiting for Input" },
+  paused: { bg: "bg-yellow-500/10 text-yellow-700", label: "Paused" },
   cancelled: { bg: "bg-[var(--bg-elevated)] text-[var(--text-quaternary)]", label: "Cancelled" },
 };
 

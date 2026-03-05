@@ -244,7 +244,7 @@ export default function PrDetailPage() {
               {pr.additions != null && (
                 <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3">
                   <span className="text-xs text-[var(--text-quaternary)]">Additions</span>
-                  <span className="ml-2 font-mono text-sm font-semibold text-emerald-400">
+                  <span className="ml-2 font-mono text-sm font-semibold text-emerald-600">
                     +{pr.additions}
                   </span>
                 </div>
@@ -252,7 +252,7 @@ export default function PrDetailPage() {
               {pr.deletions != null && (
                 <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3">
                   <span className="text-xs text-[var(--text-quaternary)]">Deletions</span>
-                  <span className="ml-2 font-mono text-sm font-semibold text-red-400">
+                  <span className="ml-2 font-mono text-sm font-semibold text-red-600">
                     -{pr.deletions}
                   </span>
                 </div>
@@ -291,7 +291,7 @@ export default function PrDetailPage() {
                     <span className="text-[var(--text-primary)]">{issue.title}</span>
                     <span
                       className={`ml-auto text-xs font-medium ${
-                        issue.state === "open" ? "text-emerald-400" : "text-[var(--text-quaternary)]"
+                        issue.state === "open" ? "text-emerald-600" : "text-[var(--text-quaternary)]"
                       }`}
                     >
                       {issue.state}

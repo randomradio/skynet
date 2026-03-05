@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { eq, gt, asc, count } from "drizzle-orm";
+import { eq, gt, asc, count, sql } from "drizzle-orm";
 
 import { getDb } from "./client";
 import { messages } from "./schema";
@@ -10,6 +10,7 @@ export interface InsertMessageInput {
   authorType: "user" | "ai" | "system";
   content: string;
   aiContext?: unknown;
+  parentId?: string;
 }
 
 export async function insertMessage(input: InsertMessageInput): Promise<string> {
@@ -23,8 +24,20 @@ export async function insertMessage(input: InsertMessageInput): Promise<string> 
     authorType: input.authorType,
     content: input.content,
     aiContext: input.aiContext ?? null,
+    parentId: input.parentId ?? null,
+    threadCount: 0,
     createdAt: new Date(),
   });
+
+  // Increment parent's threadCount if this is a reply
+  if (input.parentId) {
+    await db
+      .update(messages)
+      .set({
+        threadCount: sql`${messages.threadCount} + 1`,
+      })
+      .where(eq(messages.id, input.parentId));
+  }
 
   return id;
 }
@@ -53,20 +66,7 @@ export async function countMessagesSince(
   since: Date,
 ): Promise<number> {
   const db = getDb();
-  const rows = await db
-    .select({ cnt: count() })
-    .from(messages)
-    .where(
-      eq(messages.discussionId, discussionId),
-    );
 
-  // Filter by createdAt > since
-  const allRows = await db
-    .select({ cnt: count() })
-    .from(messages)
-    .where(eq(messages.discussionId, discussionId));
-
-  // Simple approach: count messages after since date
   const filtered = await db
     .select()
     .from(messages)

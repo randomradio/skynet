@@ -99,7 +99,7 @@ export function IssueList({ issues, showRepo }: IssueListProps) {
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
                     issue.state === "open"
-                      ? "bg-emerald-500/10 text-emerald-400"
+                      ? "bg-emerald-500/10 text-emerald-600"
                       : "bg-[var(--bg-elevated)] text-[var(--text-quaternary)]"
                   }`}
                 >

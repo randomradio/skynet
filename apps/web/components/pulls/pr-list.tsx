@@ -108,13 +108,13 @@ export function PrList({ pullRequests, owner, name }: PrListProps) {
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 font-mono text-xs">
                   {pr.additions != null && (
-                    <span className="text-emerald-400">+{pr.additions}</span>
+                    <span className="text-emerald-600">+{pr.additions}</span>
                   )}
                   {pr.additions != null && pr.deletions != null && (
                     <span className="mx-1 text-[var(--text-quaternary)]">/</span>
                   )}
                   {pr.deletions != null && (
-                    <span className="text-red-400">-{pr.deletions}</span>
+                    <span className="text-red-600">-{pr.deletions}</span>
                   )}
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-xs text-[var(--text-quaternary)]">

@@ -109,9 +109,9 @@ export default function AgentsPage() {
                     <td className="px-4 py-3.5">
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                         run.mode === "review"
-                          ? "bg-amber-500/10 text-amber-400"
+                          ? "bg-amber-500/10 text-amber-600"
                           : run.mode === "interactive"
-                            ? "bg-emerald-500/10 text-emerald-400"
+                            ? "bg-emerald-500/10 text-emerald-600"
                             : "bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]"
                       }`}>
                         {run.mode === "review" ? "Review" : run.mode === "interactive" ? "Interactive" : "Develop"}

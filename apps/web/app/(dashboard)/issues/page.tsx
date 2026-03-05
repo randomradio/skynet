@@ -60,13 +60,18 @@ export default function IssuesPage() {
 
   const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.limit));
 
+  const btnClasses =
+    "rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-1 text-xs font-medium text-[var(--text-secondary)] transition-all hover:border-[var(--border-bright)] hover:bg-[var(--bg-hover)] disabled:opacity-30 disabled:hover:bg-[var(--bg-secondary)]";
+
   return (
-    <section className="space-y-4">
+    <section className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Issues</h1>
-          <p className="text-sm text-slate-500">
-            {pagination.total} issue{pagination.total !== 1 ? "s" : ""} total
+          <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">
+            Issues
+          </h1>
+          <p className="mt-0.5 text-xs text-[var(--text-quaternary)]">
+            {pagination.total} issue{pagination.total !== 1 ? "s" : ""} across all repositories
           </p>
         </div>
       </div>
@@ -81,29 +86,29 @@ export default function IssuesPage() {
       />
 
       {loading ? (
-        <div className="rounded-lg border bg-white p-8 text-center text-sm text-slate-500">
+        <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-8 text-center text-sm text-[var(--text-quaternary)]">
           Loading issues...
         </div>
       ) : (
-        <IssueList issues={issues} />
+        <IssueList issues={issues} showRepo />
       )}
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-3">
           <button
             disabled={pagination.page <= 1}
             onClick={() => fetchIssues(pagination.page - 1)}
-            className="rounded border px-3 py-1 text-sm disabled:opacity-50"
+            className={btnClasses}
           >
             Previous
           </button>
-          <span className="text-sm text-slate-600">
+          <span className="text-xs text-[var(--text-tertiary)]">
             Page {pagination.page} of {totalPages}
           </span>
           <button
             disabled={pagination.page >= totalPages}
             onClick={() => fetchIssues(pagination.page + 1)}
-            className="rounded border px-3 py-1 text-sm disabled:opacity-50"
+            className={btnClasses}
           >
             Next
           </button>

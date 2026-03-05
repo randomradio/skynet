@@ -1,13 +1,21 @@
 interface GithubLoginButtonProps {
   clientId: string;
+  appUrl?: string;
 }
 
-export function GithubLoginButton({ clientId }: GithubLoginButtonProps): React.ReactElement {
-  const href = `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(clientId)}&scope=read:user`;
+export function GithubLoginButton({ clientId, appUrl }: GithubLoginButtonProps): React.ReactElement {
+  const params = new URLSearchParams({
+    client_id: clientId,
+    scope: "read:user",
+  });
+  if (appUrl) {
+    params.set("redirect_uri", `${appUrl}/api/auth/github/callback`);
+  }
+  const href = `https://github.com/login/oauth/authorize?${params.toString()}`;
 
   return (
     <a
-      className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
+      className="group inline-flex w-full items-center justify-center gap-2.5 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-[#0c1021] transition-all hover:bg-gray-100 hover:shadow-lg hover:shadow-white/5"
       href={href}
     >
       <svg

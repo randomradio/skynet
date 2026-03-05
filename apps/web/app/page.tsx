@@ -20,7 +20,7 @@ export default async function Home(): Promise<React.ReactElement> {
   return (
     <div className="mesh-gradient flex min-h-screen items-center justify-center p-8">
       {/* Ambient glow */}
-      <div className="pointer-events-none fixed left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[500px] rounded-full bg-[var(--accent-blue)] opacity-[0.025] blur-[100px]" />
+      <div className="pointer-events-none fixed left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[500px] rounded-full bg-[var(--accent-blue)] opacity-[0.04] blur-[100px]" />
 
       <main className="relative w-full max-w-md space-y-6 animate-fade-in">
         {/* Logo */}

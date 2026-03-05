@@ -68,7 +68,7 @@ export function AIAnalysisPanel({
       </div>
 
       {error && (
-        <p className="mb-3 text-xs text-red-400">{error}</p>
+        <p className="mb-3 text-xs text-red-600">{error}</p>
       )}
 
       {!hasAnalysis && !loading && (

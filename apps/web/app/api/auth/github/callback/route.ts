@@ -60,7 +60,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       githubId: githubUser.id,
     });
 
-    const response = NextResponse.redirect(new URL("/dashboard", request.url));
+    const baseUrl = process.env.APP_URL || request.url;
+    const response = NextResponse.redirect(new URL("/dashboard", baseUrl));
     response.cookies.set(issuedSession.sessionCookie);
 
     return response;

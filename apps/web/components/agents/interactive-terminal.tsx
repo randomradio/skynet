@@ -45,7 +45,7 @@ export function InteractiveTerminal({
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="min-h-[300px] max-h-[600px] overflow-auto rounded-xl border border-[var(--border-default)] bg-[#0d0f14] p-5 font-mono text-[13px] leading-relaxed text-[#d1d5db]"
+      className="min-h-[300px] max-h-[600px] overflow-auto rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] p-5 font-mono text-[13px] leading-relaxed text-[var(--text-secondary)]"
     >
       {cleanOutput ? (
         <pre className="whitespace-pre-wrap break-words">{cleanOutput}</pre>

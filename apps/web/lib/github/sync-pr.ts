@@ -5,6 +5,7 @@ import {
   getIssueByNumber,
   insertMessage,
 } from "@skynet/db";
+import { getGitHubClient, type GitHubPullRequest } from "./client";
 
 export interface WebhookPullRequestPayload {
   action: string;
@@ -169,4 +170,59 @@ export async function syncPRFromWebhook(
   }
 
   return prId;
+}
+
+function formatGitHubPRState(pr: GitHubPullRequest): "open" | "closed" | "merged" {
+  if (pr.merged) return "merged";
+  return pr.state;
+}
+
+/**
+ * Full sync: fetch all PRs from GitHub API and upsert into DB.
+ * Mirrors fullSyncRepository() for issues.
+ */
+export async function fullSyncPullRequests(owner: string, repo: string): Promise<number> {
+  const client = getGitHubClient();
+  let synced = 0;
+  let page = 1;
+
+  while (true) {
+    const prs = await client.listPullRequestsForRepo(owner, repo, {
+      state: "all",
+      page,
+      perPage: 30,
+    });
+
+    if (prs.length === 0) break;
+
+    for (const pr of prs) {
+      const linkedIssues = extractLinkedIssues(pr.body, pr.head.ref);
+
+      await upsertPullRequestFromGitHub({
+        githubId: pr.id,
+        number: pr.number,
+        repoOwner: owner,
+        repoName: repo,
+        title: pr.title,
+        body: pr.body,
+        state: formatGitHubPRState(pr),
+        headBranch: pr.head.ref,
+        baseBranch: pr.base.ref,
+        authorGithubId: pr.user.id,
+        linkedIssueNumbers: linkedIssues,
+        additions: pr.additions,
+        deletions: pr.deletions,
+        changedFiles: pr.changed_files,
+        createdAt: new Date(pr.created_at),
+        updatedAt: new Date(pr.updated_at),
+        mergedAt: pr.merged_at ? new Date(pr.merged_at) : null,
+      });
+      synced++;
+    }
+
+    if (prs.length < 30) break;
+    page++;
+  }
+
+  return synced;
 }

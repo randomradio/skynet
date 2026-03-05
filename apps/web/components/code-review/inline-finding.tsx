@@ -9,17 +9,17 @@ interface InlineFindingProps {
 }
 
 const SEVERITY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  error: { bg: "bg-red-500/10", text: "text-red-400", border: "border-l-red-500" },
-  warning: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-l-amber-500" },
-  info: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-l-blue-500" },
+  error: { bg: "bg-red-500/10", text: "text-red-600", border: "border-l-red-500" },
+  warning: { bg: "bg-amber-500/10", text: "text-amber-600", border: "border-l-amber-500" },
+  info: { bg: "bg-blue-500/10", text: "text-blue-600", border: "border-l-blue-500" },
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  security: "bg-red-500/15 text-red-300",
-  performance: "bg-amber-500/15 text-amber-300",
-  correctness: "bg-orange-500/15 text-orange-300",
-  style: "bg-blue-500/15 text-blue-300",
-  testing: "bg-purple-500/15 text-purple-300",
+  security: "bg-red-500/15 text-red-500",
+  performance: "bg-amber-500/15 text-amber-500",
+  correctness: "bg-orange-500/15 text-orange-600",
+  style: "bg-blue-500/15 text-blue-600",
+  testing: "bg-purple-500/15 text-purple-600",
 };
 
 export function InlineFinding({ finding, feedback, onFeedback }: InlineFindingProps) {
@@ -38,8 +38,8 @@ export function InlineFinding({ finding, feedback, onFeedback }: InlineFindingPr
         <span className="text-xs text-[var(--text-secondary)] flex-1">{finding.message}</span>
         {feedback && (
           <span className={`text-[10px] font-medium ${
-            feedback.action === "approve" ? "text-emerald-400" :
-            feedback.action === "reject" ? "text-red-400" : "text-[var(--text-quaternary)]"
+            feedback.action === "approve" ? "text-emerald-600" :
+            feedback.action === "reject" ? "text-red-600" : "text-[var(--text-quaternary)]"
           }`}>
             {feedback.action}
           </span>
@@ -50,8 +50,8 @@ export function InlineFinding({ finding, feedback, onFeedback }: InlineFindingPr
       {finding.suggestedFix && (
         <div className="mt-1.5 rounded bg-[var(--bg-primary)] p-2 font-mono text-xs">
           <div className="text-[var(--text-quaternary)] mb-1">Suggested fix:</div>
-          <div className="text-red-400/80 line-through">{finding.suggestedFix.originalCode}</div>
-          <div className="text-emerald-400/80">{finding.suggestedFix.proposedCode}</div>
+          <div className="text-red-600/80 line-through">{finding.suggestedFix.originalCode}</div>
+          <div className="text-emerald-600/80">{finding.suggestedFix.proposedCode}</div>
         </div>
       )}
 
@@ -62,8 +62,8 @@ export function InlineFinding({ finding, feedback, onFeedback }: InlineFindingPr
             onClick={() => onFeedback(finding.id, "approve")}
             className={`rounded px-1.5 py-0.5 text-[10px] transition-colors ${
               feedback?.action === "approve"
-                ? "bg-emerald-500/20 text-emerald-400"
-                : "text-[var(--text-quaternary)] hover:bg-emerald-500/10 hover:text-emerald-400"
+                ? "bg-emerald-500/20 text-emerald-600"
+                : "text-[var(--text-quaternary)] hover:bg-emerald-500/10 hover:text-emerald-600"
             }`}
           >
             Approve
@@ -72,8 +72,8 @@ export function InlineFinding({ finding, feedback, onFeedback }: InlineFindingPr
             onClick={() => onFeedback(finding.id, "reject")}
             className={`rounded px-1.5 py-0.5 text-[10px] transition-colors ${
               feedback?.action === "reject"
-                ? "bg-red-500/20 text-red-400"
-                : "text-[var(--text-quaternary)] hover:bg-red-500/10 hover:text-red-400"
+                ? "bg-red-500/20 text-red-600"
+                : "text-[var(--text-quaternary)] hover:bg-red-500/10 hover:text-red-600"
             }`}
           >
             Reject

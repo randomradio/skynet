@@ -27,23 +27,23 @@ interface ReviewPanelProps {
 }
 
 const SEVERITY_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  error: { bg: "bg-red-500/10", text: "text-red-400", label: "Error" },
-  warning: { bg: "bg-amber-500/10", text: "text-amber-400", label: "Warning" },
+  error: { bg: "bg-red-500/10", text: "text-red-600", label: "Error" },
+  warning: { bg: "bg-amber-500/10", text: "text-amber-600", label: "Warning" },
   info: { bg: "bg-[var(--accent-blue)]/10", text: "text-[var(--accent-blue)]", label: "Info" },
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  security: "bg-red-500/15 text-red-300",
-  performance: "bg-amber-500/15 text-amber-300",
-  correctness: "bg-orange-500/15 text-orange-300",
-  style: "bg-blue-500/15 text-blue-300",
-  testing: "bg-purple-500/15 text-purple-300",
+  security: "bg-red-500/15 text-red-500",
+  performance: "bg-amber-500/15 text-amber-500",
+  correctness: "bg-orange-500/15 text-orange-600",
+  style: "bg-blue-500/15 text-blue-600",
+  testing: "bg-purple-500/15 text-purple-600",
 };
 
 const ASSESSMENT_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  approve: { bg: "bg-emerald-500/10", text: "text-emerald-400", label: "Approved" },
-  request_changes: { bg: "bg-red-500/10", text: "text-red-400", label: "Changes Requested" },
-  comment: { bg: "bg-amber-500/10", text: "text-amber-400", label: "Commented" },
+  approve: { bg: "bg-emerald-500/10", text: "text-emerald-600", label: "Approved" },
+  request_changes: { bg: "bg-red-500/10", text: "text-red-600", label: "Changes Requested" },
+  comment: { bg: "bg-amber-500/10", text: "text-amber-600", label: "Commented" },
 };
 
 export function ReviewPanel({ owner, name, prNumber, onFindingClick }: ReviewPanelProps) {
@@ -193,7 +193,7 @@ export function ReviewPanel({ owner, name, prNumber, onFindingClick }: ReviewPan
 
   if (error) {
     return (
-      <div className="p-8 text-center text-sm text-red-400">{error}</div>
+      <div className="p-8 text-center text-sm text-red-600">{error}</div>
     );
   }
 
@@ -219,10 +219,10 @@ export function ReviewPanel({ owner, name, prNumber, onFindingClick }: ReviewPan
 
   const statusColor =
     review.status === "completed"
-      ? "text-emerald-400"
+      ? "text-emerald-600"
       : review.status === "failed"
-        ? "text-red-400"
-        : "text-amber-400";
+        ? "text-red-600"
+        : "text-amber-600";
 
   // Group findings by file
   const findingsByFile: Record<string, ReviewFinding[]> = {};
@@ -264,17 +264,17 @@ export function ReviewPanel({ owner, name, prNumber, onFindingClick }: ReviewPan
             {review.metadata.totalFindings} findings
           </span>
           {review.metadata.errorCount > 0 && (
-            <span className="rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-400">
+            <span className="rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-600">
               {review.metadata.errorCount} errors
             </span>
           )}
           {review.metadata.warningCount > 0 && (
-            <span className="rounded-md bg-amber-500/10 px-2 py-1 text-xs text-amber-400">
+            <span className="rounded-md bg-amber-500/10 px-2 py-1 text-xs text-amber-600">
               {review.metadata.warningCount} warnings
             </span>
           )}
           {review.metadata.infoCount > 0 && (
-            <span className="rounded-md bg-blue-500/10 px-2 py-1 text-xs text-blue-300">
+            <span className="rounded-md bg-blue-500/10 px-2 py-1 text-xs text-blue-600">
               {review.metadata.infoCount} info
             </span>
           )}
@@ -296,8 +296,8 @@ export function ReviewPanel({ owner, name, prNumber, onFindingClick }: ReviewPan
       {/* Feedback summary */}
       {review.findings.length > 0 && Object.keys(feedback).length > 0 && (
         <div className="flex gap-3 text-xs">
-          <span className="text-emerald-400">{approvedCount} approved</span>
-          <span className="text-red-400">{rejectedCount} rejected</span>
+          <span className="text-emerald-600">{approvedCount} approved</span>
+          <span className="text-red-600">{rejectedCount} rejected</span>
           <span className="text-[var(--text-quaternary)]">{pendingCount} pending</span>
         </div>
       )}
@@ -335,8 +335,8 @@ export function ReviewPanel({ owner, name, prNumber, onFindingClick }: ReviewPan
                       </button>
                       {fb && (
                         <span className={`ml-auto text-[10px] font-medium ${
-                          fb.action === "approve" ? "text-emerald-400" :
-                          fb.action === "reject" ? "text-red-400" : "text-[var(--text-quaternary)]"
+                          fb.action === "approve" ? "text-emerald-600" :
+                          fb.action === "reject" ? "text-red-600" : "text-[var(--text-quaternary)]"
                         }`}>
                           {fb.action === "approve" ? "Approved" : fb.action === "reject" ? "Rejected" : "Commented"}
                         </span>
@@ -349,8 +349,8 @@ export function ReviewPanel({ owner, name, prNumber, onFindingClick }: ReviewPan
                         onClick={() => handleFeedback(finding.id, "approve")}
                         className={`rounded px-2 py-0.5 text-xs transition-colors ${
                           fb?.action === "approve"
-                            ? "bg-emerald-500/20 text-emerald-400"
-                            : "text-[var(--text-quaternary)] hover:bg-emerald-500/10 hover:text-emerald-400"
+                            ? "bg-emerald-500/20 text-emerald-600"
+                            : "text-[var(--text-quaternary)] hover:bg-emerald-500/10 hover:text-emerald-600"
                         }`}
                         title="Approve"
                       >
@@ -360,8 +360,8 @@ export function ReviewPanel({ owner, name, prNumber, onFindingClick }: ReviewPan
                         onClick={() => handleFeedback(finding.id, "reject")}
                         className={`rounded px-2 py-0.5 text-xs transition-colors ${
                           fb?.action === "reject"
-                            ? "bg-red-500/20 text-red-400"
-                            : "text-[var(--text-quaternary)] hover:bg-red-500/10 hover:text-red-400"
+                            ? "bg-red-500/20 text-red-600"
+                            : "text-[var(--text-quaternary)] hover:bg-red-500/10 hover:text-red-600"
                         }`}
                         title="Reject"
                       >
@@ -387,7 +387,7 @@ export function ReviewPanel({ owner, name, prNumber, onFindingClick }: ReviewPan
       ) : (
         review.status === "completed" && (
           <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-center">
-            <p className="text-sm text-emerald-400">No issues found</p>
+            <p className="text-sm text-emerald-600">No issues found</p>
           </div>
         )
       )}
@@ -421,7 +421,7 @@ export function ReviewPanel({ owner, name, prNumber, onFindingClick }: ReviewPan
                 </button>
                 <button
                   onClick={handleDiscard}
-                  className="inline-flex items-center rounded-lg bg-red-600/20 border border-red-500/30 px-4 py-2 text-xs font-medium text-red-400 transition-all hover:bg-red-600/30"
+                  className="inline-flex items-center rounded-lg bg-red-600/20 border border-red-500/30 px-4 py-2 text-xs font-medium text-red-600 transition-all hover:bg-red-600/30"
                 >
                   Discard All Changes
                 </button>

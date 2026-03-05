@@ -114,7 +114,7 @@ export default function IssueDetailPage() {
   if (error || !issue) {
     return (
       <div className="space-y-2">
-        <p className="text-sm text-red-400">{error ?? "Issue not found"}</p>
+        <p className="text-sm text-red-600">{error ?? "Issue not found"}</p>
         <Link href="/issues" className="text-sm text-[var(--accent-blue)] hover:underline">
           Back to issues
         </Link>
@@ -148,7 +148,7 @@ export default function IssueDetailPage() {
               <span
                 className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
                   issue.state === "open"
-                    ? "bg-emerald-500/10 text-emerald-400"
+                    ? "bg-emerald-500/10 text-emerald-600"
                     : "bg-[var(--bg-elevated)] text-[var(--text-quaternary)]"
                 }`}
               >
@@ -197,8 +197,8 @@ export default function IssueDetailPage() {
           {workspace && (
             <div className={`flex items-center justify-between rounded-lg border px-4 py-2 text-xs ${
               workspace.status === "active"
-                ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400"
-                : "border-yellow-500/20 bg-yellow-500/5 text-yellow-400"
+                ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-600"
+                : "border-yellow-500/20 bg-yellow-500/5 text-yellow-700"
             }`}>
               <span>
                 {workspace.status === "active"
@@ -210,7 +210,7 @@ export default function IssueDetailPage() {
                   <button
                     onClick={handleStartAgent}
                     disabled={startingAgent}
-                    className="rounded-md bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 transition-all hover:bg-emerald-500/20"
+                    className="rounded-md bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 transition-all hover:bg-emerald-500/20"
                   >
                     Resume
                   </button>

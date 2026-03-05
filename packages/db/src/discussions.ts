@@ -85,3 +85,33 @@ export async function finalizeDiscussion(
     })
     .where(eq(discussions.id, discussionId));
 }
+
+export interface Participant {
+  githubId: number;
+  username: string;
+  avatarUrl: string | null;
+}
+
+export async function addParticipant(
+  discussionId: string,
+  participant: Participant,
+): Promise<void> {
+  const db = getDb();
+  const rows = await db
+    .select({ participants: discussions.participants })
+    .from(discussions)
+    .where(eq(discussions.id, discussionId))
+    .limit(1);
+
+  const existing = (rows[0]?.participants ?? []) as Participant[];
+  const already = existing.some((p) => p.githubId === participant.githubId);
+  if (already) return;
+
+  await db
+    .update(discussions)
+    .set({
+      participants: [...existing, participant],
+      updatedAt: new Date(),
+    })
+    .where(eq(discussions.id, discussionId));
+}

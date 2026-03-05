@@ -14,9 +14,9 @@ interface FileTreeProps {
 }
 
 const STATUS_ICONS: Record<string, { label: string; color: string }> = {
-  added: { label: "A", color: "text-emerald-400" },
-  removed: { label: "D", color: "text-red-400" },
-  modified: { label: "M", color: "text-amber-400" },
+  added: { label: "A", color: "text-emerald-600" },
+  removed: { label: "D", color: "text-red-600" },
+  modified: { label: "M", color: "text-amber-600" },
   renamed: { label: "R", color: "text-[var(--accent-blue)]" },
   copied: { label: "C", color: "text-[var(--accent-purple)]" },
 };
@@ -52,13 +52,13 @@ export function FileTree({ files, selectedFile, onSelect }: FileTreeProps) {
               </span>
               <span className="flex-shrink-0 whitespace-nowrap">
                 {file.additions > 0 && (
-                  <span className="text-emerald-400">+{file.additions}</span>
+                  <span className="text-emerald-600">+{file.additions}</span>
                 )}
                 {file.additions > 0 && file.deletions > 0 && (
                   <span className="text-[var(--text-quaternary)]">/</span>
                 )}
                 {file.deletions > 0 && (
-                  <span className="text-red-400">-{file.deletions}</span>
+                  <span className="text-red-600">-{file.deletions}</span>
                 )}
               </span>
             </button>

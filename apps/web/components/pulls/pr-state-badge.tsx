@@ -1,7 +1,7 @@
 const STATE_STYLES: Record<string, { bg: string; label: string }> = {
-  open: { bg: "bg-emerald-500/10 text-emerald-400", label: "Open" },
+  open: { bg: "bg-emerald-500/10 text-emerald-600", label: "Open" },
   closed: { bg: "bg-[var(--bg-elevated)] text-[var(--text-quaternary)]", label: "Closed" },
-  merged: { bg: "bg-purple-500/10 text-purple-400", label: "Merged" },
+  merged: { bg: "bg-purple-500/10 text-purple-700", label: "Merged" },
 };
 
 export function PrStateBadge({ state }: { state: string }) {

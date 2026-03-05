@@ -2,32 +2,34 @@ import { loadSkynetConfig, type RepositoryConfig } from "@skynet/config";
 import { getRepositoryByOwnerName, upsertRepository } from "@skynet/db";
 import { getGitHubClient, hasGitHubToken } from "@/lib/github/client";
 import { fullSyncRepository } from "@/lib/github/sync-issue";
+import { fullSyncPullRequests } from "@/lib/github/sync-pr";
 
 async function onboardRepo(repo: RepositoryConfig): Promise<void> {
   const existing = await getRepositoryByOwnerName(repo.owner, repo.name);
-  if (existing) {
-    console.log(`[skynet] repo ${repo.owner}/${repo.name} already onboarded, skipping`);
-    return;
+  if (!existing) {
+    const client = getGitHubClient();
+    const ghRepo = await client.getRepository(repo.owner, repo.name);
+
+    await upsertRepository({
+      githubId: ghRepo.id,
+      owner: ghRepo.owner.login,
+      name: ghRepo.name,
+      description: ghRepo.description,
+      isPrivate: ghRepo.private,
+      defaultBranch: ghRepo.default_branch,
+    });
+
+    console.log(`[skynet] onboarded ${repo.owner}/${repo.name}`);
   }
-
-  const client = getGitHubClient();
-  const ghRepo = await client.getRepository(repo.owner, repo.name);
-
-  await upsertRepository({
-    githubId: ghRepo.id,
-    owner: ghRepo.owner.login,
-    name: ghRepo.name,
-    description: ghRepo.description,
-    isPrivate: ghRepo.private,
-    defaultBranch: ghRepo.default_branch,
-  });
-
-  console.log(`[skynet] onboarded ${repo.owner}/${repo.name}`);
 
   if (repo.sync !== false) {
     console.log(`[skynet] syncing issues for ${repo.owner}/${repo.name}...`);
-    const count = await fullSyncRepository(repo.owner, repo.name);
-    console.log(`[skynet] synced ${count} issues for ${repo.owner}/${repo.name}`);
+    const issueCount = await fullSyncRepository(repo.owner, repo.name);
+    console.log(`[skynet] synced ${issueCount} issues for ${repo.owner}/${repo.name}`);
+
+    console.log(`[skynet] syncing pull requests for ${repo.owner}/${repo.name}...`);
+    const prCount = await fullSyncPullRequests(repo.owner, repo.name);
+    console.log(`[skynet] synced ${prCount} pull requests for ${repo.owner}/${repo.name}`);
   }
 }
 

@@ -6,13 +6,23 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
+    "dev:tunnel": "turbo run dev:tunnel --parallel",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "format": "turbo run format",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:migrate": "pnpm --filter @skynet/db db:migrate",
+    "db:generate": "pnpm --filter @skynet/db db:generate",
+    "db:push": "pnpm --filter @skynet/db db:push",
+    "db:studio": "pnpm --filter @skynet/db db:studio",
+    "db:setup": "node scripts/db-setup.mjs"
   },
   "devDependencies": {
+    "mysql2": "^3.15.1",
     "turbo": "^2.4.2"
+  },
+  "dependencies": {
+    "undici": "^7.22.0"
   }
 }

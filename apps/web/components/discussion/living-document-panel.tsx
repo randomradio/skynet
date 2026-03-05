@@ -46,7 +46,7 @@ export function LivingDocumentPanel({
             Living Document
           </h3>
           {finalized && (
-            <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+            <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600">
               Finalized
             </span>
           )}

@@ -116,6 +116,18 @@ export async function exchangeGithubCodeForAccessToken(
 ): Promise<string> {
   const { clientId, clientSecret } = getGithubClientCredentials();
 
+  const tokenBody: Record<string, string> = {
+    client_id: clientId,
+    client_secret: clientSecret,
+    code,
+  };
+
+  // If APP_URL is set, include redirect_uri to match the one sent in the authorize URL
+  const appUrl = process.env.APP_URL;
+  if (appUrl) {
+    tokenBody.redirect_uri = `${appUrl}/api/auth/github/callback`;
+  }
+
   const response = await fetch(GITHUB_ACCESS_TOKEN_URL, {
     method: "POST",
     headers: {
@@ -123,11 +135,7 @@ export async function exchangeGithubCodeForAccessToken(
       "content-type": "application/json",
       "user-agent": "skynet-web-auth",
     },
-    body: JSON.stringify({
-      client_id: clientId,
-      client_secret: clientSecret,
-      code,
-    }),
+    body: JSON.stringify(tokenBody),
   });
 
   const body = parseGithubAccessTokenResponse(await readJsonBody(response));

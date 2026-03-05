@@ -1,8 +1,8 @@
 const TYPE_STYLES: Record<string, string> = {
-  bug: "bg-red-500/10 text-red-400 ring-red-500/20",
+  bug: "bg-red-500/10 text-red-600 ring-red-500/20",
   feature: "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] ring-[var(--accent-blue)]/20",
-  task: "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20",
-  question: "bg-purple-500/10 text-purple-400 ring-purple-500/20",
+  task: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/20",
+  question: "bg-purple-500/10 text-purple-700 ring-purple-500/20",
 };
 
 export function TypeBadge({ type }: { type: string | null }) {

@@ -43,19 +43,16 @@ async function recoverOrphanedWorkspaces(): Promise<void> {
       pauseAgentRun,
       appendTerminalOutput,
     } = await import("@skynet/db");
-    const { getTerminalSession } = await import("@/lib/agent/engine");
 
+    // On server restart, there are no in-memory sessions — pause all active workspaces
     const activeWorkspaces = await listWorkspaces({ status: "active" });
     for (const ws of activeWorkspaces) {
-      // No in-memory session = server restarted while workspace was active
-      if (!ws.activeRunId || !getTerminalSession(ws.activeRunId)) {
-        await pauseWorkspace(ws.id, 24);
-        if (ws.activeRunId) {
-          await pauseAgentRun(ws.activeRunId);
-          await appendTerminalOutput(ws.activeRunId, `\n--- Session auto-paused (server restart) ---\n`);
-        }
-        console.log(`[skynet] auto-paused orphaned workspace ${ws.id}`);
+      await pauseWorkspace(ws.id, 24);
+      if (ws.activeRunId) {
+        await pauseAgentRun(ws.activeRunId);
+        await appendTerminalOutput(ws.activeRunId, `\n--- Session auto-paused (server restart) ---\n`);
       }
+      console.log(`[skynet] auto-paused orphaned workspace ${ws.id}`);
     }
   } catch (err) {
     // DB might not be configured — that's fine
@@ -66,21 +63,10 @@ async function recoverOrphanedWorkspaces(): Promise<void> {
 async function cleanupExpiredWorkspaces(): Promise<void> {
   try {
     const { listExpiredWorkspaces, expireWorkspace } = await import("@skynet/db");
-    const { cleanupWorktree, getSandbox, isSandboxAvailable } = await import("@/lib/sandbox");
 
     const expired = await listExpiredWorkspaces();
-    if (expired.length === 0) return;
-
-    const sandboxAvailable = await isSandboxAvailable();
     for (const ws of expired) {
-      if (sandboxAvailable) {
-        try {
-          const sandbox = getSandbox();
-          await cleanupWorktree(sandbox, ws.repoPath, ws.worktreePath);
-        } catch {
-          // best effort — worktree may already be gone
-        }
-      }
+      // Mark as expired in DB; worktree cleanup is best-effort via sandbox API separately
       await expireWorkspace(ws.id);
       console.log(`[skynet] expired workspace ${ws.id}`);
     }

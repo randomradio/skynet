@@ -4,6 +4,14 @@ import { getDb } from "./client";
 import { hasDatabaseUrl } from "./env";
 import { issueWorkspaces } from "./schema";
 
+/** Returns true when the error indicates the issue_workspaces table doesn't exist yet. */
+function isTableMissingError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const msg = err.message;
+  // MySQL/MatrixOne: "Table '…' doesn't exist" (errno 1146)
+  return msg.includes("doesn't exist") || msg.includes("ER_NO_SUCH_TABLE");
+}
+
 export interface WorkspaceRow {
   id: string;
   issueId: string;
@@ -48,29 +56,39 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<void
 
 export async function getWorkspaceByIssueId(issueId: string): Promise<WorkspaceRow | null> {
   if (!hasDatabaseUrl()) return null;
-  const db = getDb();
-  const rows = await db
-    .select()
-    .from(issueWorkspaces)
-    .where(
-      and(
-        eq(issueWorkspaces.issueId, issueId),
-        sql`${issueWorkspaces.status} IN ('active', 'paused')`,
-      ),
-    )
-    .limit(1);
-  return (rows[0] as WorkspaceRow) ?? null;
+  try {
+    const db = getDb();
+    const rows = await db
+      .select()
+      .from(issueWorkspaces)
+      .where(
+        and(
+          eq(issueWorkspaces.issueId, issueId),
+          sql`${issueWorkspaces.status} IN ('active', 'paused')`,
+        ),
+      )
+      .limit(1);
+    return (rows[0] as WorkspaceRow) ?? null;
+  } catch (err) {
+    if (isTableMissingError(err)) return null;
+    throw err;
+  }
 }
 
 export async function getWorkspaceById(id: string): Promise<WorkspaceRow | null> {
   if (!hasDatabaseUrl()) return null;
-  const db = getDb();
-  const rows = await db
-    .select()
-    .from(issueWorkspaces)
-    .where(eq(issueWorkspaces.id, id))
-    .limit(1);
-  return (rows[0] as WorkspaceRow) ?? null;
+  try {
+    const db = getDb();
+    const rows = await db
+      .select()
+      .from(issueWorkspaces)
+      .where(eq(issueWorkspaces.id, id))
+      .limit(1);
+    return (rows[0] as WorkspaceRow) ?? null;
+  } catch (err) {
+    if (isTableMissingError(err)) return null;
+    throw err;
+  }
 }
 
 export async function activateWorkspace(
@@ -154,39 +172,49 @@ export async function listWorkspaces(filters?: {
   assignedTo?: string;
 }): Promise<WorkspaceRow[]> {
   if (!hasDatabaseUrl()) return [];
-  const db = getDb();
-  const conditions: SQL[] = [];
+  try {
+    const db = getDb();
+    const conditions: SQL[] = [];
 
-  if (filters?.status) {
-    conditions.push(
-      eq(issueWorkspaces.status, filters.status as typeof issueWorkspaces.status.enumValues[number]),
-    );
-  }
-  if (filters?.assignedTo) {
-    conditions.push(eq(issueWorkspaces.assignedTo, filters.assignedTo));
-  }
+    if (filters?.status) {
+      conditions.push(
+        eq(issueWorkspaces.status, filters.status as typeof issueWorkspaces.status.enumValues[number]),
+      );
+    }
+    if (filters?.assignedTo) {
+      conditions.push(eq(issueWorkspaces.assignedTo, filters.assignedTo));
+    }
 
-  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-  const rows = await db
-    .select()
-    .from(issueWorkspaces)
-    .where(whereClause);
-  return rows as WorkspaceRow[];
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const rows = await db
+      .select()
+      .from(issueWorkspaces)
+      .where(whereClause);
+    return rows as WorkspaceRow[];
+  } catch (err) {
+    if (isTableMissingError(err)) return [];
+    throw err;
+  }
 }
 
 export async function listExpiredWorkspaces(): Promise<WorkspaceRow[]> {
   if (!hasDatabaseUrl()) return [];
-  const db = getDb();
-  const rows = await db
-    .select()
-    .from(issueWorkspaces)
-    .where(
-      and(
-        eq(issueWorkspaces.status, "paused"),
-        lte(issueWorkspaces.expiresAt, new Date()),
-      ),
-    );
-  return rows as WorkspaceRow[];
+  try {
+    const db = getDb();
+    const rows = await db
+      .select()
+      .from(issueWorkspaces)
+      .where(
+        and(
+          eq(issueWorkspaces.status, "paused"),
+          lte(issueWorkspaces.expiresAt, new Date()),
+        ),
+      );
+    return rows as WorkspaceRow[];
+  } catch (err) {
+    if (isTableMissingError(err)) return [];
+    throw err;
+  }
 }
 
 export async function expireWorkspace(id: string): Promise<void> {

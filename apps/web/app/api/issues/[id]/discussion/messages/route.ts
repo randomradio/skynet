@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { JWTPayload } from "jose";
 
 import { withAuth } from "@/lib/auth/with-auth";
-import { getOrCreateDiscussion, insertMessage } from "@skynet/db";
+import { getOrCreateDiscussion, insertMessage, addParticipant } from "@skynet/db";
 import { triggerAIResponse } from "@/lib/ai/auto-respond";
 import type { ApiErrorResponse } from "@skynet/sdk";
 
@@ -24,7 +24,7 @@ export const POST = withAuth(
       return NextResponse.json(body, { status: 400 });
     }
 
-    const { content } = await request.json();
+    const { content, parentId } = await request.json();
     if (!content || typeof content !== "string") {
       const body: ApiErrorResponse = {
         error: { code: "INVALID_REQUEST", message: "content is required" },
@@ -47,20 +47,38 @@ export const POST = withAuth(
         authorId: (user.sub as string) ?? null,
         authorType: "user",
         content,
+        parentId: parentId ?? undefined,
       });
 
-      // Check if the message @mentions AI
+      // Add user as participant (fire-and-forget)
+      const username = (user as Record<string, unknown>).username as string | undefined;
+      const avatarUrl = (user as Record<string, unknown>).avatar_url as string | undefined;
+      const githubIdStr = (user.sub as string) ?? "";
+      const githubIdMatch = githubIdStr.match(/^github:(\d+)$/);
+      if (githubIdMatch && username) {
+        addParticipant(discussion.id, {
+          githubId: parseInt(githubIdMatch[1]!, 10),
+          username,
+          avatarUrl: avatarUrl ?? null,
+        }).catch(() => {});
+      }
+
+      // Only trigger AI when explicitly @mentioned
       const shouldTriggerAI = AI_MENTION_PATTERN.test(content);
 
       if (shouldTriggerAI) {
-        // Fire-and-forget: trigger AI response asynchronously
-        triggerAIResponse(params.id).catch((err) => {
+        triggerAIResponse(params.id, parentId ?? undefined).catch((err) => {
           console.error("[skynet] auto AI response failed:", err);
         });
       }
 
       return NextResponse.json({
-        message: { id: messageId, content, authorType: "user" },
+        message: {
+          id: messageId,
+          content,
+          authorType: "user",
+          parentId: parentId ?? null,
+        },
         aiResponsePending: shouldTriggerAI,
       });
     } catch (err) {

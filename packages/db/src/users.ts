@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-import { eq } from "drizzle-orm";
+import { eq, inArray, like } from "drizzle-orm";
 
 import { getDb } from "./client";
 import { hasDatabaseUrl } from "./env";
@@ -73,4 +73,50 @@ export async function upsertUser(input: UpsertUserInput): Promise<UpsertUserResu
     username: input.username,
     source: "database",
   };
+}
+
+export interface UserProfile {
+  id: string;
+  githubId: number;
+  username: string;
+  avatarUrl: string | null;
+}
+
+export async function getUsersByGithubIds(
+  ids: number[],
+): Promise<Map<number, UserProfile>> {
+  if (ids.length === 0) return new Map();
+  const db = getDb();
+  const rows = await db
+    .select({
+      id: users.id,
+      githubId: users.githubId,
+      username: users.username,
+      avatarUrl: users.avatarUrl,
+    })
+    .from(users)
+    .where(inArray(users.githubId, ids));
+
+  const map = new Map<number, UserProfile>();
+  for (const row of rows) {
+    map.set(row.githubId, row);
+  }
+  return map;
+}
+
+export async function searchUsers(
+  query: string,
+  limit = 10,
+): Promise<UserProfile[]> {
+  const db = getDb();
+  return db
+    .select({
+      id: users.id,
+      githubId: users.githubId,
+      username: users.username,
+      avatarUrl: users.avatarUrl,
+    })
+    .from(users)
+    .where(like(users.username, `%${query}%`))
+    .limit(limit);
 }

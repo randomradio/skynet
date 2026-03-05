@@ -46,29 +46,41 @@ export const GET = withAuth(
         const POLL_INTERVAL = 1000;
         const MAX_POLLS = 600; // 10 minutes max
         let pollCount = 0;
+        let closed = false;
+
+        const safeEnqueue = (data: Uint8Array) => {
+          if (!closed) controller.enqueue(data);
+        };
+        const safeClose = () => {
+          if (!closed) {
+            closed = true;
+            controller.close();
+          }
+        };
 
         const poll = async () => {
+          if (closed) return;
           try {
             const current = await getAgentRunById(runId);
             if (!current) {
-              controller.enqueue(
+              safeEnqueue(
                 encoder.encode(`data: ${JSON.stringify({ done: true, reason: "not_found" })}\n\n`),
               );
-              controller.close();
+              safeClose();
               return;
             }
 
             // Send new logs
             const allLogs = Array.isArray(current.logs) ? (current.logs as unknown[]) : [];
             while (logIndex < allLogs.length) {
-              controller.enqueue(
+              safeEnqueue(
                 encoder.encode(`data: ${JSON.stringify({ log: allLogs[logIndex] })}\n\n`),
               );
               logIndex++;
             }
 
             // Send status updates
-            controller.enqueue(
+            safeEnqueue(
               encoder.encode(
                 `data: ${JSON.stringify({ status: current.status })}\n\n`,
               ),
@@ -79,7 +91,7 @@ export const GET = withAuth(
               TERMINAL_STATES.includes(current.status) &&
               !isAgentRunning(runId)
             ) {
-              controller.enqueue(
+              safeEnqueue(
                 encoder.encode(
                   `data: ${JSON.stringify({
                     done: true,
@@ -90,29 +102,29 @@ export const GET = withAuth(
                   })}\n\n`,
                 ),
               );
-              controller.close();
+              safeClose();
               return;
             }
 
             pollCount++;
             if (pollCount >= MAX_POLLS) {
-              controller.enqueue(
+              safeEnqueue(
                 encoder.encode(
                   `data: ${JSON.stringify({ done: true, reason: "timeout" })}\n\n`,
                 ),
               );
-              controller.close();
+              safeClose();
               return;
             }
 
             setTimeout(() => void poll(), POLL_INTERVAL);
           } catch {
-            controller.enqueue(
+            safeEnqueue(
               encoder.encode(
                 `data: ${JSON.stringify({ done: true, reason: "error" })}\n\n`,
               ),
             );
-            controller.close();
+            safeClose();
           }
         };
 

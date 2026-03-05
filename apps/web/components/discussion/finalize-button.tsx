@@ -14,7 +14,7 @@ export function FinalizeButton({ issueId, finalized, onFinalized }: FinalizeButt
 
   if (finalized) {
     return (
-      <span className="rounded-md bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+      <span className="rounded-md bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600">
         Finalized
       </span>
     );
@@ -45,7 +45,7 @@ export function FinalizeButton({ issueId, finalized, onFinalized }: FinalizeButt
         <button
           onClick={handleFinalize}
           disabled={loading}
-          className="rounded-md bg-red-500/10 px-3 py-1 text-xs font-medium text-red-400 transition-all hover:bg-red-500/20 disabled:opacity-50"
+          className="rounded-md bg-red-500/10 px-3 py-1 text-xs font-medium text-red-600 transition-all hover:bg-red-500/20 disabled:opacity-50"
         >
           {loading ? "Finalizing..." : "Confirm"}
         </button>
