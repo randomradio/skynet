@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { count, desc, eq, and, type SQL } from "drizzle-orm";
+import { count, desc, eq, and, sql, type SQL } from "drizzle-orm";
 
 import { getDb } from "./client";
 import { hasDatabaseUrl } from "./env";
@@ -13,27 +13,41 @@ export interface AgentLog {
 }
 
 export interface AgentArtifact {
-  type: "diff" | "test_report" | "lint_report" | "file";
+  type: "diff" | "test_report" | "lint_report" | "file" | "review" | "structured_review";
   path?: string;
   content?: string;
   url?: string;
+  // Structured review fields (when type === "structured_review")
+  reviewSummary?: string;
+  overallAssessment?: "approve" | "request_changes" | "comment";
+  findings?: unknown[];
+  metadata?: Record<string, unknown>;
 }
 
 export interface CreateAgentRunInput {
-  issueId: string;
+  issueId?: string;
+  pullRequestId?: string;
+  mode?: "develop" | "review" | "interactive";
   startedBy: string;
+  workspaceId?: string;
 }
 
 export interface AgentRunRow {
   id: string;
-  issueId: string;
+  issueId: string | null;
   startedBy: string;
-  status: "planning" | "coding" | "testing" | "review" | "cancelled" | "completed" | "failed";
+  status: "planning" | "coding" | "testing" | "review" | "waiting_for_input" | "paused" | "cancelled" | "completed" | "failed";
+  mode: "develop" | "review" | "interactive";
+  pullRequestId: string | null;
   plan: unknown;
   branch: string | null;
   prNumber: number | null;
   logs: unknown;
   artifacts: unknown;
+  workspaceId: string | null;
+  bashSessionId: string | null;
+  terminalOutput: string | null;
+  waitingForInput: boolean;
   startedAt: Date;
   completedAt: Date | null;
 }
@@ -58,9 +72,12 @@ export async function createAgentRun(input: CreateAgentRunInput): Promise<string
 
   await db.insert(agentRuns).values({
     id,
-    issueId: input.issueId,
+    issueId: input.issueId ?? null,
     startedBy: input.startedBy,
     status: "planning",
+    mode: input.mode ?? "develop",
+    pullRequestId: input.pullRequestId ?? null,
+    workspaceId: input.workspaceId ?? null,
     logs: [],
     startedAt: new Date(),
   });
@@ -76,6 +93,20 @@ export async function getAgentRunById(id: string): Promise<AgentRunRow | null> {
     .select()
     .from(agentRuns)
     .where(eq(agentRuns.id, id))
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
+export async function getAgentRunByPRId(pullRequestId: string): Promise<AgentRunRow | null> {
+  if (!hasDatabaseUrl()) return null;
+
+  const db = getDb();
+  const rows = await db
+    .select()
+    .from(agentRuns)
+    .where(and(eq(agentRuns.pullRequestId, pullRequestId), eq(agentRuns.mode, "review")))
+    .orderBy(desc(agentRuns.startedAt))
     .limit(1);
 
   return rows[0] ?? null;
@@ -202,6 +233,48 @@ export async function completeAgentRun(
   await db.update(agentRuns).set(updates).where(eq(agentRuns.id, id));
 }
 
+// ─────────────────────────────────────────────────
+// Interactive terminal helpers
+// ─────────────────────────────────────────────────
+
+export async function setBashSessionId(
+  id: string,
+  sessionId: string,
+): Promise<void> {
+  const db = getDb();
+  await db.update(agentRuns).set({ bashSessionId: sessionId }).where(eq(agentRuns.id, id));
+}
+
+export async function appendTerminalOutput(
+  id: string,
+  chunk: string,
+): Promise<void> {
+  const db = getDb();
+  await db.update(agentRuns).set({
+    terminalOutput: sql`CONCAT(COALESCE(${agentRuns.terminalOutput}, ''), ${chunk})`,
+  }).where(eq(agentRuns.id, id));
+}
+
+export async function getTerminalOutput(
+  id: string,
+): Promise<string> {
+  const db = getDb();
+  const rows = await db
+    .select({ terminalOutput: agentRuns.terminalOutput })
+    .from(agentRuns)
+    .where(eq(agentRuns.id, id))
+    .limit(1);
+  return rows[0]?.terminalOutput ?? "";
+}
+
+export async function setWaitingForInput(
+  id: string,
+  waiting: boolean,
+): Promise<void> {
+  const db = getDb();
+  await db.update(agentRuns).set({ waitingForInput: waiting }).where(eq(agentRuns.id, id));
+}
+
 export async function cancelAgentRun(id: string): Promise<boolean> {
   const run = await getAgentRunById(id);
   if (!run) return false;
@@ -215,6 +288,23 @@ export async function cancelAgentRun(id: string): Promise<boolean> {
     timestamp: new Date().toISOString(),
     level: "info",
     message: "Agent run cancelled by user",
+  });
+  return true;
+}
+
+export async function pauseAgentRun(id: string): Promise<boolean> {
+  const run = await getAgentRunById(id);
+  if (!run) return false;
+
+  if (run.status === "completed" || run.status === "failed" || run.status === "cancelled") {
+    return false;
+  }
+
+  await updateAgentRunStatus(id, "paused");
+  await appendAgentRunLog(id, {
+    timestamp: new Date().toISOString(),
+    level: "info",
+    message: "Agent run paused",
   });
   return true;
 }

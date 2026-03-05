@@ -5,6 +5,7 @@ import {
   float,
   int,
   json,
+  mediumtext,
   mysqlEnum,
   mysqlTable,
   text,
@@ -38,9 +39,18 @@ export const AGENT_STATUS_VALUES = [
   "coding",
   "testing",
   "review",
+  "waiting_for_input",
+  "paused",
   "cancelled",
   "completed",
   "failed",
+] as const;
+
+export const WORKSPACE_STATUS_VALUES = [
+  "active",
+  "paused",
+  "completed",
+  "expired",
 ] as const;
 
 export const users = mysqlTable("users", {
@@ -99,14 +109,20 @@ export const issues = mysqlTable("issues", {
 
 export const agentRuns = mysqlTable("agent_runs", {
   id: varchar("id", { length: 36 }).primaryKey(),
-  issueId: varchar("issue_id", { length: 36 }).notNull(),
+  issueId: varchar("issue_id", { length: 36 }),
   startedBy: varchar("started_by", { length: 36 }).notNull(),
   status: mysqlEnum("status", AGENT_STATUS_VALUES).notNull(),
+  mode: mysqlEnum("mode", ["develop", "review", "interactive"]).default("develop").notNull(),
+  pullRequestId: varchar("pull_request_id", { length: 36 }),
   plan: json("plan"),
   branch: varchar("branch", { length: 200 }),
   prNumber: int("pr_number"),
   logs: json("logs"),
   artifacts: json("artifacts"),
+  bashSessionId: varchar("bash_session_id", { length: 100 }),
+  terminalOutput: mediumtext("terminal_output"),
+  workspaceId: varchar("workspace_id", { length: 36 }),
+  waitingForInput: moBoolean("waiting_for_input").default(false).notNull(),
   startedAt: timestamp("started_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
 });
@@ -133,6 +149,8 @@ export const messages = mysqlTable("messages", {
   authorType: mysqlEnum("author_type", ["user", "ai", "system"]).notNull(),
   content: text("content").notNull(),
   aiContext: json("ai_context"),
+  parentId: varchar("parent_id", { length: 36 }),
+  threadCount: int("thread_count").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -197,6 +215,41 @@ export const issueEmbeddings = mysqlTable("issue_embeddings", {
   embedding: json("embedding"),
   model: varchar("model", { length: 50 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const reviewFeedback = mysqlTable("review_feedback", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  agentRunId: varchar("agent_run_id", { length: 36 }).notNull(),
+  findingId: varchar("finding_id", { length: 36 }).notNull(),
+  action: varchar("action", { length: 20 }).notNull(),
+  comment: text("comment"),
+  createdBy: varchar("created_by", { length: 36 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const issueCodeContext = mysqlTable("issue_code_context", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  issueId: varchar("issue_id", { length: 36 }).notNull(),
+  repoOwner: varchar("repo_owner", { length: 100 }).notNull(),
+  repoName: varchar("repo_name", { length: 100 }).notNull(),
+  snippets: json("snippets"),
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+});
+
+export const issueWorkspaces = mysqlTable("issue_workspaces", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  issueId: varchar("issue_id", { length: 36 }).notNull(),
+  status: mysqlEnum("status", WORKSPACE_STATUS_VALUES).notNull().default("paused"),
+  repoPath: varchar("repo_path", { length: 500 }).notNull(),
+  worktreePath: varchar("worktree_path", { length: 500 }).notNull(),
+  branch: varchar("branch", { length: 200 }).notNull(),
+  createdBy: varchar("created_by", { length: 36 }).notNull(),
+  assignedTo: varchar("assigned_to", { length: 36 }),
+  activeRunId: varchar("active_run_id", { length: 36 }),
+  sessionCount: int("session_count").default(1).notNull(),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const pullRequests = mysqlTable("pull_requests", {

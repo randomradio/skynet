@@ -9,3 +9,6 @@ export * from "./discussions";
 export * from "./messages";
 export * from "./agent-runs";
 export * from "./pull-requests";
+export * from "./review-feedback";
+export * from "./issue-code-context";
+export * from "./issue-workspaces";

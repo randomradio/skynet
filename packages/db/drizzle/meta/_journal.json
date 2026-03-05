@@ -15,6 +15,34 @@
       "when": 1772520768578,
       "tag": "0001_cool_raza",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1772593746143,
+      "tag": "0002_lean_jetstream",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1772680000000,
+      "tag": "0003_review_feedback",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1772780000000,
+      "tag": "0004_interactive_terminal",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1772880000000,
+      "tag": "0005_session_persistence",
+      "breakpoints": true
     }
   ]
 }
