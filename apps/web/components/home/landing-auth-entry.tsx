@@ -82,41 +82,43 @@ export function LandingAuthEntry(): React.ReactElement {
     router.refresh();
   }
 
+  const inputClasses =
+    "mt-1.5 w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-quaternary)] transition-all focus:border-[var(--accent-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]/30";
+
   return (
-    <section className="rounded-lg border bg-white p-6 shadow-sm">
-      <h2 className="text-base font-semibold text-slate-900">
-        Authenticate To Continue
+    <section className="glass rounded-2xl p-6">
+      <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+        Quick Access
       </h2>
-      <p className="mt-1 text-sm text-slate-600">
-        Bootstrap a cookie-backed session via <code>{ROUTES.authToken}</code>{" "}
-        and redirect to the protected dashboard.
-      </p>
-      <p className="mt-1 text-xs text-slate-500">
-        Requires user-provided <code>JWT_SECRET</code> in environment.
+      <p className="mt-1 text-xs text-[var(--text-quaternary)] leading-relaxed">
+        Bootstrap a session via{" "}
+        <code className="rounded bg-[var(--bg-secondary)] px-1.5 py-0.5 font-mono text-xs text-[var(--accent-blue)]">
+          {ROUTES.authToken}
+        </code>
       </p>
 
       <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit}>
-        <label className="text-sm text-slate-700">
+        <label className="text-xs font-medium text-[var(--text-tertiary)]">
           Subject (sub)
           <input
-            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            className={inputClasses}
             onChange={(event) => setSub(event.target.value)}
             required
             value={sub}
           />
         </label>
-        <label className="text-sm text-slate-700">
+        <label className="text-xs font-medium text-[var(--text-tertiary)]">
           Username
           <input
-            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            className={inputClasses}
             onChange={(event) => setUsername(event.target.value)}
             value={username}
           />
         </label>
-        <label className="text-sm text-slate-700">
+        <label className="text-xs font-medium text-[var(--text-tertiary)]">
           Role
           <select
-            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            className={inputClasses}
             onChange={(event) => setRole(event.target.value as UserRole)}
             value={role}
           >
@@ -128,23 +130,25 @@ export function LandingAuthEntry(): React.ReactElement {
         </label>
         <div className="flex items-end">
           <button
-            className="w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+            className="w-full rounded-lg bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-[var(--glow-blue)]"
             type="submit"
           >
-            Sign In To Dashboard
+            Sign In
           </button>
         </div>
       </form>
 
-      <div className="mt-4 rounded-md bg-slate-50 px-3 py-2 text-sm">
-        <p className="font-medium text-slate-700">Status</p>
-        <p className="text-slate-600">{status}</p>
+      <div className="mt-4 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-subtle)] px-3 py-2">
+        <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">
+          Status
+        </p>
+        <p className="text-xs text-[var(--text-secondary)]">{status}</p>
       </div>
 
       {error ? (
-        <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm">
-          <p className="font-medium text-red-700">Error</p>
-          <p className="text-red-700">{error}</p>
+        <div className="mt-2 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2">
+          <p className="text-xs font-medium text-red-400">Error</p>
+          <p className="text-xs text-red-300">{error}</p>
         </div>
       ) : null}
     </section>

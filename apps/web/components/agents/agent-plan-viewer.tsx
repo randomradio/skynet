@@ -22,45 +22,45 @@ interface Plan {
 }
 
 const ACTION_STYLES: Record<string, string> = {
-  create: "bg-green-100 text-green-800",
-  modify: "bg-blue-100 text-blue-800",
-  delete: "bg-red-100 text-red-800",
+  create: "bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20",
+  modify: "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] ring-1 ring-inset ring-[var(--accent-blue)]/20",
+  delete: "bg-red-500/10 text-red-400 ring-1 ring-inset ring-red-500/20",
 };
 
 export function AgentPlanViewer({ plan }: { plan: Plan | null }) {
   if (!plan) {
     return (
-      <div className="rounded-lg border bg-slate-50 p-4 text-center text-sm text-slate-500">
+      <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-6 text-center text-sm text-[var(--text-quaternary)]">
         No plan generated yet
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 rounded-lg border bg-white p-4">
+    <div className="space-y-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
       {plan.summary && (
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">Summary</h3>
-          <p className="mt-1 text-sm text-slate-600">{plan.summary}</p>
+          <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Summary</h3>
+          <p className="mt-1.5 text-sm text-[var(--text-secondary)]">{plan.summary}</p>
         </div>
       )}
 
       {plan.approach && (
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">Approach</h3>
-          <p className="mt-1 text-sm text-slate-600">{plan.approach}</p>
+          <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Approach</h3>
+          <p className="mt-1.5 text-sm text-[var(--text-secondary)]">{plan.approach}</p>
         </div>
       )}
 
       {plan.estimatedComplexity && (
-        <div>
-          <span className="text-xs text-slate-500">Complexity: </span>
-          <span className={`text-xs font-medium ${
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Complexity</span>
+          <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${
             plan.estimatedComplexity === "high"
-              ? "text-red-600"
+              ? "bg-red-500/10 text-red-400"
               : plan.estimatedComplexity === "medium"
-                ? "text-amber-600"
-                : "text-green-600"
+                ? "bg-amber-500/10 text-amber-400"
+                : "bg-emerald-500/10 text-emerald-400"
           }`}>
             {plan.estimatedComplexity}
           </span>
@@ -69,17 +69,17 @@ export function AgentPlanViewer({ plan }: { plan: Plan | null }) {
 
       {plan.files && plan.files.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">
             Files ({plan.files.length})
           </h3>
-          <ul className="mt-1 space-y-1">
+          <ul className="mt-2 space-y-1.5">
             {plan.files.map((f, i) => (
               <li key={i} className="flex items-center gap-2 text-xs">
-                <span className={`rounded px-1.5 py-0.5 font-medium ${ACTION_STYLES[f.action] ?? ""}`}>
+                <span className={`rounded-md px-1.5 py-0.5 text-xs font-medium ${ACTION_STYLES[f.action] ?? ""}`}>
                   {f.action}
                 </span>
-                <span className="font-mono text-slate-700">{f.path}</span>
-                <span className="text-slate-400">— {f.description}</span>
+                <span className="font-mono text-[var(--text-secondary)]">{f.path}</span>
+                <span className="text-[var(--text-quaternary)]">— {f.description}</span>
               </li>
             ))}
           </ul>
@@ -88,13 +88,13 @@ export function AgentPlanViewer({ plan }: { plan: Plan | null }) {
 
       {plan.tests && plan.tests.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">
             Tests ({plan.tests.length})
           </h3>
-          <ul className="mt-1 space-y-1">
+          <ul className="mt-2 space-y-1.5">
             {plan.tests.map((t, i) => (
-              <li key={i} className="text-xs text-slate-600">
-                <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-500">{t.type}</span>{" "}
+              <li key={i} className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                <span className="rounded-md bg-[var(--bg-elevated)] px-1.5 py-0.5 text-xs text-[var(--text-quaternary)]">{t.type}</span>
                 {t.description}
               </li>
             ))}
@@ -104,10 +104,10 @@ export function AgentPlanViewer({ plan }: { plan: Plan | null }) {
 
       {plan.dependencies && plan.dependencies.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">Dependencies</h3>
-          <div className="mt-1 flex flex-wrap gap-1">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Dependencies</h3>
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {plan.dependencies.map((d, i) => (
-              <span key={i} className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+              <span key={i} className="rounded-md bg-[var(--bg-elevated)] px-2 py-0.5 text-xs text-[var(--text-tertiary)]">
                 {d}
               </span>
             ))}
@@ -117,10 +117,13 @@ export function AgentPlanViewer({ plan }: { plan: Plan | null }) {
 
       {plan.risks && plan.risks.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">Risks</h3>
-          <ul className="mt-1 list-inside list-disc text-xs text-amber-700">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Risks</h3>
+          <ul className="mt-2 space-y-1 text-xs text-amber-400/90">
             {plan.risks.map((r, i) => (
-              <li key={i}>{r}</li>
+              <li key={i} className="flex items-start gap-2">
+                <span className="mt-0.5 text-amber-500/60">!</span>
+                {r}
+              </li>
             ))}
           </ul>
         </div>

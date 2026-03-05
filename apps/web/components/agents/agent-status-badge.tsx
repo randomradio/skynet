@@ -15,7 +15,7 @@ export function AgentStatusBadge({ status }: { status: string }) {
   const isActive = status === "planning" || status === "coding" || status === "testing" || status === "waiting_for_input";
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium ${style.bg}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium ${style.bg}`}>
       {isActive && (
         <span className="relative flex h-1.5 w-1.5">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-75" />

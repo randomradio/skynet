@@ -20,6 +20,7 @@ interface Issue {
 
 interface IssueListProps {
   issues: Issue[];
+  showRepo?: boolean;
 }
 
 function timeAgo(dateStr: string | null): string {
@@ -33,63 +34,88 @@ function timeAgo(dateStr: string | null): string {
   return `${days}d ago`;
 }
 
-export function IssueList({ issues }: IssueListProps) {
+export function IssueList({ issues, showRepo }: IssueListProps) {
   if (issues.length === 0) {
     return (
-      <div className="rounded-lg border bg-white p-8 text-center text-sm text-slate-500">
+      <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-8 text-center text-sm text-[var(--text-tertiary)]">
         No issues found.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)]">
       <table className="w-full text-sm">
-        <thead className="border-b bg-slate-50 text-left text-xs font-medium text-slate-500">
+        <thead className="border-b border-[var(--border-subtle)] text-left text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">
           <tr>
-            <th className="px-4 py-3">#</th>
-            <th className="px-4 py-3">Title</th>
-            <th className="px-4 py-3">State</th>
-            <th className="px-4 py-3">Type</th>
-            <th className="px-4 py-3">Priority</th>
-            <th className="px-4 py-3">Updated</th>
+            <th className="px-4 py-3.5">#</th>
+            <th className="px-4 py-3.5">Title</th>
+            {showRepo && <th className="px-4 py-3.5">Repo</th>}
+            <th className="px-4 py-3.5">State</th>
+            <th className="px-4 py-3.5">Type</th>
+            <th className="px-4 py-3.5">Priority</th>
+            <th className="px-4 py-3.5">Updated</th>
           </tr>
         </thead>
-        <tbody className="divide-y">
+        <tbody className="divide-y divide-[var(--border-subtle)]">
           {issues.map((issue) => (
-            <tr key={issue.id} className="hover:bg-slate-50">
-              <td className="px-4 py-3 text-slate-500">{issue.number}</td>
-              <td className="px-4 py-3">
+            <tr key={issue.id} className="transition-colors hover:bg-[var(--bg-hover)]">
+              <td className="px-4 py-3 font-mono text-xs text-[var(--text-quaternary)]">
+                <a
+                  href={`https://github.com/${issue.repoOwner}/${issue.repoName}/issues/${issue.number}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[var(--accent-blue)]"
+                >
+                  {issue.number}
+                </a>
+              </td>
+              <td className="px-4 py-3.5">
                 <Link
                   href={`/issues/${issue.id}`}
-                  className="font-medium text-slate-900 hover:text-blue-600 hover:underline"
+                  className="font-medium text-[var(--text-primary)] transition-colors hover:text-[var(--accent-blue)]"
                 >
                   {issue.title}
                 </Link>
                 {issue.aiSummary && (
-                  <p className="mt-0.5 text-xs text-slate-500 line-clamp-1">
+                  <p className="mt-0.5 text-xs text-[var(--text-quaternary)] line-clamp-1">
                     {issue.aiSummary}
                   </p>
                 )}
               </td>
-              <td className="px-4 py-3">
+              {showRepo && (
+                <td className="whitespace-nowrap px-4 py-3">
+                  <a
+                    href={`https://github.com/${issue.repoOwner}/${issue.repoName}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-xs text-[var(--text-tertiary)] transition-colors hover:text-[var(--accent-blue)]"
+                  >
+                    {issue.repoOwner}/{issue.repoName}
+                  </a>
+                </td>
+              )}
+              <td className="px-4 py-3.5">
                 <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
                     issue.state === "open"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-slate-100 text-slate-600"
+                      ? "bg-emerald-500/10 text-emerald-400"
+                      : "bg-[var(--bg-elevated)] text-[var(--text-quaternary)]"
                   }`}
                 >
+                  <span className={`h-1.5 w-1.5 rounded-full ${
+                    issue.state === "open" ? "bg-emerald-400" : "bg-[var(--text-quaternary)]"
+                  }`} />
                   {issue.state}
                 </span>
               </td>
-              <td className="px-4 py-3">
+              <td className="px-4 py-3.5">
                 <TypeBadge type={issue.aiType} />
               </td>
-              <td className="px-4 py-3">
+              <td className="px-4 py-3.5">
                 <PriorityBadge priority={issue.aiPriority} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-500">
+              <td className="whitespace-nowrap px-4 py-3 text-xs text-[var(--text-quaternary)]">
                 {timeAgo(issue.updatedAt)}
               </td>
             </tr>

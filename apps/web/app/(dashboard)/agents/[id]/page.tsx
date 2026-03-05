@@ -255,9 +255,9 @@ export default function AgentDetailPage() {
 
         <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Mode</span>
+            <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Mode</span>
             <div className="mt-0.5">
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
+              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                 run.mode === "review"
                   ? "bg-amber-500/10 text-amber-400"
                   : run.mode === "interactive"
@@ -270,7 +270,7 @@ export default function AgentDetailPage() {
           </div>
           {run.issueId && (
           <div>
-            <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Issue</span>
+            <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Issue</span>
             <div className="mt-0.5">
               <Link href={`/issues/${run.issueId}`} className="font-mono text-xs text-[var(--accent-blue)] hover:underline">
                 {run.issueId.slice(0, 8)}...
@@ -280,21 +280,21 @@ export default function AgentDetailPage() {
           )}
           {run.pullRequestId && (
           <div>
-            <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Pull Request</span>
+            <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Pull Request</span>
             <div className="mt-0.5 font-mono text-xs text-[var(--accent-blue)]">
               {run.pullRequestId.slice(0, 8)}...
             </div>
           </div>
           )}
           <div>
-            <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Started</span>
+            <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Started</span>
             <div className="mt-0.5 text-xs text-[var(--text-secondary)]">
               {new Date(run.startedAt).toLocaleString()}
             </div>
           </div>
           {run.completedAt && (
             <div>
-              <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Completed</span>
+              <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Completed</span>
               <div className="mt-0.5 text-xs text-[var(--text-secondary)]">
                 {new Date(run.completedAt).toLocaleString()}
               </div>
@@ -302,13 +302,13 @@ export default function AgentDetailPage() {
           )}
           {run.branch && (
             <div>
-              <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Branch</span>
+              <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Branch</span>
               <div className="mt-0.5 font-mono text-xs text-[var(--text-secondary)]">{run.branch}</div>
             </div>
           )}
           {run.prNumber && (
             <div>
-              <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-quaternary)]">PR</span>
+              <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">PR</span>
               <div className="mt-0.5 font-mono text-xs text-[var(--accent-blue)]">#{run.prNumber}</div>
             </div>
           )}
@@ -379,7 +379,7 @@ export default function AgentDetailPage() {
             {run.artifacts.map((artifact, i) => (
               <div key={i} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4">
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="rounded-md bg-[var(--accent-blue)]/10 px-2 py-0.5 text-[11px] font-medium text-[var(--accent-blue)]">
+                  <span className="rounded-md bg-[var(--accent-blue)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent-blue)]">
                     {artifact.type}
                   </span>
                   {artifact.path && (
@@ -480,7 +480,7 @@ function HandoffModal({
           Reassign this workspace to another team member.
         </p>
         <div className="mt-4">
-          <label className="text-[11px] font-medium text-[var(--text-quaternary)]">User ID</label>
+          <label className="text-xs font-medium text-[var(--text-quaternary)]">User ID</label>
           <input
             type="text"
             value={userId}

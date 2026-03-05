@@ -53,24 +53,26 @@ export function AIAnalysisPanel({
   const hasAnalysis = aiType || aiPriority || aiSummary;
 
   return (
-    <div className="rounded-lg border bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-900">AI Analysis</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
+          AI Analysis
+        </h3>
         <button
           onClick={handleAnalyze}
           disabled={loading}
-          className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-md bg-[var(--accent-blue)]/10 px-3 py-1 text-xs font-medium text-[var(--accent-blue)] transition-all hover:bg-[var(--accent-blue)]/20 disabled:opacity-50"
         >
           {loading ? "Analyzing..." : hasAnalysis ? "Re-analyze" : "Analyze"}
         </button>
       </div>
 
       {error && (
-        <p className="mb-3 text-xs text-red-600">{error}</p>
+        <p className="mb-3 text-xs text-red-400">{error}</p>
       )}
 
       {!hasAnalysis && !loading && (
-        <p className="text-sm text-slate-500">
+        <p className="text-xs text-[var(--text-quaternary)]">
           No analysis yet. Click &ldquo;Analyze&rdquo; to classify this issue with AI.
         </p>
       )}
@@ -84,19 +86,19 @@ export function AIAnalysisPanel({
 
           {aiSummary && (
             <div>
-              <p className="text-xs font-medium text-slate-500">Summary</p>
-              <p className="text-sm text-slate-700">{aiSummary}</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Summary</p>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">{aiSummary}</p>
             </div>
           )}
 
           {aiTags && aiTags.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-slate-500">Tags</p>
-              <div className="mt-1 flex flex-wrap gap-1">
+              <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Tags</p>
+              <div className="mt-1.5 flex flex-wrap gap-1">
                 {aiTags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600"
+                    className="rounded-md bg-[var(--bg-elevated)] px-2 py-0.5 text-xs text-[var(--text-tertiary)]"
                   >
                     {tag}
                   </span>
@@ -106,36 +108,36 @@ export function AIAnalysisPanel({
           )}
 
           {aiAnalysis && (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {aiAnalysis.rootCause && (
                 <div>
-                  <p className="text-xs font-medium text-slate-500">Root Cause</p>
-                  <p className="text-sm text-slate-700">{aiAnalysis.rootCause}</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Root Cause</p>
+                  <p className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">{aiAnalysis.rootCause}</p>
                 </div>
               )}
               {aiAnalysis.suggestedApproach && (
                 <div>
-                  <p className="text-xs font-medium text-slate-500">Suggested Approach</p>
-                  <p className="text-sm text-slate-700">{aiAnalysis.suggestedApproach}</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Suggested Approach</p>
+                  <p className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">{aiAnalysis.suggestedApproach}</p>
                 </div>
               )}
               {aiAnalysis.affectedAreas && aiAnalysis.affectedAreas.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-slate-500">Affected Areas</p>
-                  <p className="text-sm text-slate-700">{aiAnalysis.affectedAreas.join(", ")}</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Affected Areas</p>
+                  <p className="mt-1 text-xs text-[var(--text-secondary)]">{aiAnalysis.affectedAreas.join(", ")}</p>
                 </div>
               )}
               {aiAnalysis.estimatedComplexity && (
                 <div>
-                  <p className="text-xs font-medium text-slate-500">Complexity</p>
-                  <p className="text-sm text-slate-700">{aiAnalysis.estimatedComplexity}</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">Complexity</p>
+                  <p className="mt-1 text-xs text-[var(--text-secondary)]">{aiAnalysis.estimatedComplexity}</p>
                 </div>
               )}
             </div>
           )}
 
           {lastAnalyzedAt && (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[var(--text-quaternary)]">
               Last analyzed: {new Date(lastAnalyzedAt).toLocaleString()}
             </p>
           )}

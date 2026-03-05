@@ -14,7 +14,7 @@ export function FinalizeButton({ issueId, finalized, onFinalized }: FinalizeButt
 
   if (finalized) {
     return (
-      <span className="rounded bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+      <span className="rounded-md bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
         Finalized
       </span>
     );
@@ -41,17 +41,17 @@ export function FinalizeButton({ issueId, finalized, onFinalized }: FinalizeButt
   if (confirming) {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-600">Finalize? This cannot be undone.</span>
+        <span className="text-xs text-[var(--text-quaternary)]">Finalize? This cannot be undone.</span>
         <button
           onClick={handleFinalize}
           disabled={loading}
-          className="rounded bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+          className="rounded-md bg-red-500/10 px-3 py-1 text-xs font-medium text-red-400 transition-all hover:bg-red-500/20 disabled:opacity-50"
         >
           {loading ? "Finalizing..." : "Confirm"}
         </button>
         <button
           onClick={() => setConfirming(false)}
-          className="rounded border px-3 py-1 text-xs text-slate-600 hover:bg-slate-50"
+          className="rounded-md border border-[var(--border-default)] px-3 py-1 text-xs text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)]"
         >
           Cancel
         </button>
@@ -62,7 +62,7 @@ export function FinalizeButton({ issueId, finalized, onFinalized }: FinalizeButt
   return (
     <button
       onClick={() => setConfirming(true)}
-      className="rounded bg-slate-800 px-3 py-1 text-xs font-medium text-white hover:bg-slate-700"
+      className="rounded-md bg-[var(--bg-elevated)] border border-[var(--border-default)] px-3 py-1 text-xs font-medium text-[var(--text-secondary)] transition-all hover:border-[var(--border-bright)] hover:bg-[var(--bg-hover)]"
     >
       Finalize
     </button>

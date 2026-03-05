@@ -105,12 +105,12 @@ export default function DashboardPage() {
   ];
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-8">
       <div>
         <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">
           Dashboard
         </h1>
-        <p className="mt-0.5 text-xs text-[var(--text-quaternary)]">
+        <p className="mt-1 text-sm text-[var(--text-tertiary)]">
           Overview of your development activity.
         </p>
       </div>
@@ -121,13 +121,13 @@ export default function DashboardPage() {
           <Link
             key={card.label}
             href={card.href}
-            className="card-glow rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 transition-all hover:border-[var(--border-bright)]"
+            className="card-glow rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-6 transition-all hover:border-[var(--border-bright)]"
           >
-            <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-quaternary)]">
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-quaternary)]">
               {card.label}
             </p>
             <p
-              className="mt-2 text-3xl font-semibold"
+              className="mt-3 text-3xl font-semibold tabular-nums"
               style={{ color: card.color }}
             >
               {loading ? "-" : String(card.value)}
@@ -144,14 +144,14 @@ export default function DashboardPage() {
         {loading ? (
           <p className="text-sm text-[var(--text-quaternary)]">Loading...</p>
         ) : repositories.length === 0 ? (
-          <p className="text-xs text-[var(--text-quaternary)]">No repositories synced yet.</p>
+          <p className="text-sm text-[var(--text-quaternary)]">No repositories synced yet.</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {repositories.map((repo) => (
               <Link
                 key={repo.id}
                 href={`/repos/${repo.owner}/${repo.name}/issues`}
-                className="card-glow rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4 transition-all hover:border-[var(--border-bright)]"
+                className="card-glow rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 transition-all hover:border-[var(--border-bright)]"
               >
                 <p className="text-sm font-semibold text-[var(--text-primary)]">
                   <span className="text-[var(--text-tertiary)]">{repo.owner}</span>
@@ -159,11 +159,11 @@ export default function DashboardPage() {
                   {repo.name}
                 </p>
                 {repo.description && (
-                  <p className="mt-1 text-xs text-[var(--text-quaternary)] line-clamp-2">
+                  <p className="mt-1.5 text-xs leading-relaxed text-[var(--text-quaternary)] line-clamp-2">
                     {repo.description}
                   </p>
                 )}
-                <p className="mt-2 text-[11px] text-[var(--text-quaternary)]">
+                <p className="mt-3 text-xs text-[var(--text-quaternary)]">
                   Synced {timeAgo(repo.lastSyncedAt)}
                 </p>
               </Link>
@@ -171,6 +171,41 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Active Workspaces */}
+      {workspaces.length > 0 && (
+        <div>
+          <h2 className="mb-3 text-sm font-semibold text-[var(--text-secondary)]">
+            Active Workspaces
+          </h2>
+          <div className="space-y-2">
+            {workspaces.map((ws) => (
+              <Link
+                key={ws.id}
+                href={`/issues/${ws.issueId}`}
+                className="flex items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3 text-sm transition-colors hover:bg-[var(--bg-hover)]"
+              >
+                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
+                  ws.status === "active"
+                    ? "bg-emerald-500/10 text-emerald-400"
+                    : "bg-yellow-500/10 text-yellow-400"
+                }`}>
+                  {ws.status === "active" ? "Active" : "Paused"}
+                </span>
+                <span className="flex-1 min-w-0 truncate text-xs text-[var(--text-primary)]">
+                  {ws.issueTitle ?? ws.issueId.slice(0, 8)}
+                </span>
+                <span className="text-xs text-[var(--text-quaternary)]">
+                  Session #{ws.sessionCount}
+                </span>
+                <span className="flex-shrink-0 text-xs text-[var(--text-quaternary)]">
+                  {timeAgo(ws.updatedAt)}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recent Agent Runs */}
       <div>
@@ -188,14 +223,14 @@ export default function DashboardPage() {
         {loading ? (
           <p className="text-sm text-[var(--text-quaternary)]">Loading...</p>
         ) : agentRuns.length === 0 ? (
-          <p className="text-xs text-[var(--text-quaternary)]">No agent runs yet.</p>
+          <p className="text-sm text-[var(--text-quaternary)]">No agent runs yet.</p>
         ) : (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {agentRuns.map((run) => (
               <Link
                 key={run.id}
                 href={`/agents/${run.id}`}
-                className="flex items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 text-sm transition-colors hover:bg-[var(--bg-hover)]"
+                className="flex items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3 text-sm transition-colors hover:bg-[var(--bg-hover)]"
               >
                 <AgentStatusBadge status={run.status} />
                 <span className="flex-1 min-w-0 truncate text-xs text-[var(--text-primary)]">
@@ -206,7 +241,7 @@ export default function DashboardPage() {
                     PR #{run.prNumber}
                   </span>
                 )}
-                <span className="flex-shrink-0 text-[11px] text-[var(--text-quaternary)]">
+                <span className="flex-shrink-0 text-xs text-[var(--text-quaternary)]">
                   {timeAgo(run.startedAt)}
                 </span>
               </Link>
@@ -214,41 +249,6 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-
-      {/* Active Workspaces */}
-      {workspaces.length > 0 && (
-        <div>
-          <h2 className="mb-3 text-sm font-semibold text-[var(--text-secondary)]">
-            Active Workspaces
-          </h2>
-          <div className="space-y-1.5">
-            {workspaces.map((ws) => (
-              <Link
-                key={ws.id}
-                href={`/issues/${ws.issueId}`}
-                className="flex items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 text-sm transition-colors hover:bg-[var(--bg-hover)]"
-              >
-                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ${
-                  ws.status === "active"
-                    ? "bg-emerald-500/10 text-emerald-400"
-                    : "bg-yellow-500/10 text-yellow-400"
-                }`}>
-                  {ws.status === "active" ? "Active" : "Paused"}
-                </span>
-                <span className="flex-1 min-w-0 truncate text-xs text-[var(--text-primary)]">
-                  {ws.issueTitle ?? ws.issueId.slice(0, 8)}
-                </span>
-                <span className="text-[11px] text-[var(--text-quaternary)]">
-                  Session #{ws.sessionCount}
-                </span>
-                <span className="flex-shrink-0 text-[11px] text-[var(--text-quaternary)]">
-                  {timeAgo(ws.updatedAt)}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Recent Activity */}
       <div>

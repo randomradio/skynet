@@ -1,15 +1,15 @@
 const TYPE_STYLES: Record<string, string> = {
-  bug: "bg-red-50 text-red-700 ring-red-200",
-  feature: "bg-blue-50 text-blue-700 ring-blue-200",
-  task: "bg-green-50 text-green-700 ring-green-200",
-  question: "bg-purple-50 text-purple-700 ring-purple-200",
+  bug: "bg-red-500/10 text-red-400 ring-red-500/20",
+  feature: "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] ring-[var(--accent-blue)]/20",
+  task: "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20",
+  question: "bg-purple-500/10 text-purple-400 ring-purple-500/20",
 };
 
 export function TypeBadge({ type }: { type: string | null }) {
   if (!type) return null;
-  const style = TYPE_STYLES[type] ?? "bg-gray-50 text-gray-700 ring-gray-200";
+  const style = TYPE_STYLES[type] ?? "bg-[var(--bg-elevated)] text-[var(--text-tertiary)] ring-[var(--border-default)]";
   return (
-    <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${style}`}>
+    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${style}`}>
       {type}
     </span>
   );

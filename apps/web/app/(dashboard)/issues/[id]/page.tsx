@@ -146,7 +146,7 @@ export default function IssueDetailPage() {
                 {issue.repoOwner}/{issue.repoName} #{issue.number}
               </a>
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
                   issue.state === "open"
                     ? "bg-emerald-500/10 text-emerald-400"
                     : "bg-[var(--bg-elevated)] text-[var(--text-quaternary)]"
@@ -168,7 +168,7 @@ export default function IssueDetailPage() {
                 {labels.map((label) => (
                   <span
                     key={label}
-                    className="rounded-md bg-[var(--bg-elevated)] px-2 py-0.5 text-[11px] text-[var(--text-tertiary)]"
+                    className="rounded-md bg-[var(--bg-elevated)] px-2 py-0.5 text-xs text-[var(--text-tertiary)]"
                   >
                     {label}
                   </span>
@@ -187,7 +187,7 @@ export default function IssueDetailPage() {
             )}
 
             {issue.createdAt && (
-              <p className="mt-4 text-[11px] text-[var(--text-quaternary)]">
+              <p className="mt-4 text-xs text-[var(--text-quaternary)]">
                 Created {new Date(issue.createdAt).toLocaleString()}
               </p>
             )}
@@ -210,7 +210,7 @@ export default function IssueDetailPage() {
                   <button
                     onClick={handleStartAgent}
                     disabled={startingAgent}
-                    className="rounded-md bg-emerald-500/10 px-3 py-1 text-[11px] font-medium text-emerald-400 transition-all hover:bg-emerald-500/20"
+                    className="rounded-md bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 transition-all hover:bg-emerald-500/20"
                   >
                     Resume
                   </button>
