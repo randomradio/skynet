@@ -33,6 +33,12 @@ interface AgentRun {
   completedAt: string | null;
 }
 
+const MODE_LABELS: Record<string, string> = {
+  interactive: "Agent Run",
+  review: "Code Review",
+  develop: "Implementation",
+};
+
 const TERMINAL = ["completed", "failed", "cancelled"];
 const PAUSABLE = ["planning", "coding", "testing", "waiting_for_input"];
 
@@ -264,7 +270,7 @@ export default function AgentDetailPage() {
                     ? "bg-emerald-500/10 text-emerald-600"
                     : "bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]"
               }`}>
-                {run.mode === "review" ? "Code Review" : run.mode === "interactive" ? "Interactive" : "Implementation"}
+                {MODE_LABELS[run.mode] ?? run.mode}
               </span>
             </div>
           </div>
@@ -370,7 +376,13 @@ export default function AgentDetailPage() {
         </div>
       )}
 
-      {run.artifacts && Array.isArray(run.artifacts) && run.artifacts.length > 0 && (
+      {/* Post-completion action panel: shown when agent finished with diff output */}
+      {run.status === "completed" && run.mode === "interactive" && run.artifacts && Array.isArray(run.artifacts) && (
+        <CompletionPanel run={run} />
+      )}
+
+      {/* Raw artifacts: only shown for non-interactive modes */}
+      {run.mode !== "interactive" && run.artifacts && Array.isArray(run.artifacts) && run.artifacts.length > 0 && (
         <div>
           <h2 className="mb-3 text-sm font-semibold text-[var(--text-secondary)]">
             Artifacts ({run.artifacts.length})
@@ -396,6 +408,163 @@ export default function AgentDetailPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────
+// Completion Panel (Gate: next actions after agent finishes)
+// ─────────────────────────────────────────────────
+
+function CompletionPanel({ run }: { run: AgentRun }) {
+  const [creatingPR, setCreatingPR] = useState(false);
+  const [prUrl, setPrUrl] = useState<string | null>(null);
+  const [prError, setPrError] = useState<string | null>(null);
+
+  const diffArtifacts = run.artifacts.filter((a) => a.type === "diff" && a.content?.trim());
+  const hasDiff = diffArtifacts.length > 0;
+  const hasExistingPR = !!run.prNumber;
+
+  // Parse diff stats: count added/removed lines
+  const diffStats = diffArtifacts.reduce(
+    (acc, a) => {
+      const lines = (a.content ?? "").split("\n");
+      acc.added += lines.filter((l) => l.startsWith("+") && !l.startsWith("+++")).length;
+      acc.removed += lines.filter((l) => l.startsWith("-") && !l.startsWith("---")).length;
+      acc.files.add(a.path ?? "changed files");
+      return acc;
+    },
+    { added: 0, removed: 0, files: new Set<string>() },
+  );
+
+  const handleCreatePR = useCallback(async () => {
+    setCreatingPR(true);
+    setPrError(null);
+    try {
+      const res = await fetch(`/api/agents/${run.id}/create-pr`, { method: "POST" });
+      const data = await res.json();
+      if (data.prUrl) {
+        setPrUrl(data.prUrl);
+      } else {
+        setPrError(data.error ?? "Failed to create PR");
+      }
+    } catch {
+      setPrError("Network error");
+    } finally {
+      setCreatingPR(false);
+    }
+  }, [run.id]);
+
+  if (!hasDiff && !hasExistingPR) {
+    return (
+      <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
+        <p className="text-sm text-[var(--text-tertiary)]">
+          Agent completed — no code changes were produced.
+        </p>
+        {run.issueId && (
+          <Link
+            href={`/issues/${run.issueId}`}
+            className="mt-2 inline-block text-xs text-[var(--accent-blue)] hover:underline"
+          >
+            Back to issue
+          </Link>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-semibold text-emerald-700">Implementation complete</span>
+        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-600">
+          ready for review
+        </span>
+      </div>
+
+      {hasDiff && (
+        <div className="mt-3 flex flex-wrap gap-3 text-xs text-[var(--text-secondary)]">
+          {diffStats.files.size > 0 && (
+            <span>{diffStats.files.size} file{diffStats.files.size !== 1 ? "s" : ""} changed</span>
+          )}
+          {diffStats.added > 0 && (
+            <span className="text-emerald-600">+{diffStats.added}</span>
+          )}
+          {diffStats.removed > 0 && (
+            <span className="text-red-500">−{diffStats.removed}</span>
+          )}
+          {run.branch && (
+            <span className="font-mono text-[var(--text-quaternary)]">{run.branch}</span>
+          )}
+        </div>
+      )}
+
+      {/* Diff preview */}
+      {hasDiff && (
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
+            Show diff
+          </summary>
+          <div className="mt-2 space-y-2">
+            {diffArtifacts.map((a, i) => (
+              <pre
+                key={i}
+                className="max-h-64 overflow-auto rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-root)] p-3 font-mono text-xs text-[var(--text-tertiary)]"
+              >
+                {a.content}
+              </pre>
+            ))}
+          </div>
+        </details>
+      )}
+
+      {/* Actions */}
+      <div className="mt-4 flex flex-wrap gap-2">
+        {hasExistingPR ? (
+          <a
+            href={`https://github.com/pulls/${run.prNumber}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center rounded-lg border border-[var(--accent-blue)]/20 bg-[var(--accent-blue)]/10 px-4 py-1.5 text-xs font-medium text-[var(--accent-blue)] transition-all hover:bg-[var(--accent-blue)]/20"
+          >
+            View PR #{run.prNumber}
+          </a>
+        ) : prUrl ? (
+          <a
+            href={prUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-600 transition-all hover:bg-emerald-500/20"
+          >
+            Open PR
+          </a>
+        ) : (
+          <button
+            onClick={handleCreatePR}
+            disabled={creatingPR}
+            className="inline-flex items-center rounded-lg bg-gradient-to-r from-[var(--accent-purple)] to-purple-600 px-4 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-[var(--glow-purple)] disabled:opacity-50"
+          >
+            {creatingPR ? "Creating PR..." : "Create Pull Request"}
+          </button>
+        )}
+
+        {run.issueId && (
+          <Link
+            href={`/issues/${run.issueId}`}
+            className="inline-flex items-center rounded-lg border border-[var(--border-default)] px-4 py-1.5 text-xs font-medium text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-hover)]"
+          >
+            Back to issue
+          </Link>
+        )}
+      </div>
+
+      {prError && (
+        <p className="mt-2 text-xs text-red-500">{prError}</p>
+      )}
+
+      <p className="mt-3 text-xs text-[var(--text-quaternary)]">
+        Review the diff above before creating a PR. You can also resume the session to make additional changes.
+      </p>
     </div>
   );
 }

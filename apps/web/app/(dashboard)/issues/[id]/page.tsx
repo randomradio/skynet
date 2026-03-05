@@ -94,7 +94,7 @@ export default function IssueDetailPage() {
       const res = await fetch("/api/agents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ issueId: issue.id, mode: "develop" }),
+        body: JSON.stringify({ issueId: issue.id, mode: "interactive" }),
       });
       const data = await res.json();
       if (data.id) {
