@@ -274,6 +274,131 @@ AI: "Great! I'll finalize the implementation plan. You can review it in the side
 Once you're satisfied, click 'Finalize' and we can start the agent execution."
 ```
 
+## PRD Agent 行为规范（Stage 1）
+
+### 触发条件
+- 用户在需求详情页点击"生成 PRD 草稿"（stage = `discovery`）
+- 禁止并发触发（同一需求只允许一个 PRD 生成任务）
+
+### 输入上下文构建
+
+```
+1. requirement.description（原始需求描述）
+2. keyword 搜索相关代码（从需求标题提取关键词，同 chat.ts 逻辑）
+3. 现有 open issues（标题列表，用于查重提示）
+4. discussion 历史（如果需求关联了讨论，取最近 20 条）
+5. 现有 prdDocument（如果有，增量更新而非覆盖）
+```
+
+### 输出规范
+
+PRD Agent **必须**严格按照以下结构输出，每节必须有内容（实在无法确定时写"待确认"）：
+
+```markdown
+## 背景与目标
+[1-3 段，解释为什么做这个需求，成功的衡量标准]
+
+## 用户故事
+[Markdown 列表，格式：作为 {角色}，我需要 {功能}，以便 {价值}]
+
+## 功能需求
+[编号列表，每条明确、可测试]
+
+## 非功能需求
+[性能、安全、可用性等，每条有具体数字指标]
+
+## 技术约束（从代码分析得出）
+[引用实际代码结构、现有 API、技术栈限制]
+
+## 验收标准
+[编号列表，每条必须可以被自动化测试或人工验证，格式：{Given}/{When}/{Then} 或 Checklist]
+
+## 开放问题
+[尚未确定的事项，每条后面注明"需要 @角色 确认"]
+```
+
+### 验收标准质量要求
+
+PRD Agent 在 prompt 中被要求：
+- 每条验收标准必须是**可测试的**（能写成测试用例或明确的人工验证步骤）
+- 禁止模糊表述（如"系统响应要快" → 必须写"P95 响应时间 < 200ms"）
+- 至少 3 条，最多 15 条
+
+### 流式输出行为
+
+- SSE 流式返回，每个 `chunk` 事件带当前增量文本
+- 完成后发送 `done` 事件，写入 requirement.prdDocument
+- 生成过程中 UI 显示实时填充效果
+
+---
+
+## Review Agent 行为规范（Stage 4）
+
+### 触发条件
+- PR 创建后自动触发（webhook → 启动 review-worker）
+- 或人工在 PR 页面点击"运行 AI 验收"
+
+### 输入上下文构建
+
+```
+1. PR diff（所有变更文件）
+2. prd-output.md（从 Context Bundle 读取 PRD 全文）
+3. 解析出的验收标准列表（从 PRD ## 验收标准 节提取）
+4. test-results（npm test 输出，由 Review Container 运行）
+5. build 结果（npm run build 输出）
+```
+
+### 验收处理逻辑
+
+```
+for each 验收标准条目:
+  1. 分类：代码变更可验证 vs 运行时可验证 vs 需人工确认
+  2. 对于代码可验证项：分析 diff 是否实现了该条目
+  3. 对于运行时项：读取 test results，查找相关测试
+  4. 标注结果：✅ 通过 / ❌ 未通过 / ⚠️ 需人工确认
+  5. 未通过时提供具体原因和修复建议
+```
+
+### 输出报告格式
+
+```markdown
+# PR #123 验收报告
+
+**总结**：满足 8/10 条验收标准，1 条未通过，1 条需人工确认。
+
+## 验收结果
+
+✅ [1] 用户可点击导出按钮
+✅ [2] 导出文件格式为有效 CSV
+✅ [3] 导出大文件（>10MB）时显示进度
+❌ [4] 导出失败时显示错误提示
+   - 原因：diff 中未找到错误处理分支
+   - 建议：在 ExportController.ts:45 添加 try-catch，catch 中调用 showError()
+✅ [5] 导出文件名包含时间戳
+...
+⚠️ [9] 并发导出不影响系统性能
+   - 需人工确认：需要在生产环境并发测试，无法从代码或单测得出
+
+## 建议操作
+
+- 修复 [4] 后可 merge
+- [9] 建议在 PR description 说明测试计划
+```
+
+### 验收不通过时的处理流程
+
+```
+生成报告 → 写入 /workspaces/pr-{N}/context/review-feedback.md
+          → 在 PR 页面展示报告
+          → 如果有 failed 条目：
+              → 提示"需要修复后重新 review"
+              → 支持 resume issue session：
+                  query({resume: issueSessionId}, feedback)
+                  → dev-worker 收到 feedback 后 force push → review 重跑
+```
+
+---
+
 ## Implementation Notes
 
 ### Context Management
@@ -298,3 +423,5 @@ Once you're satisfied, click 'Finalize' and we can start the agent execution."
 - If AI call fails: Show error, allow retry
 - If code fetch fails: Continue without context, warn user
 - If synthesis fails: Keep previous version, log error
+- If PRD generation interrupted: Resume from last written chunk on retry
+- If Review Container fails to start: Fall back to pure diff-based AI review（无测试结果）

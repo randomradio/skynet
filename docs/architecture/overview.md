@@ -41,21 +41,74 @@
                                             └─────────────────────┘
 ```
 
+## 三层 Agent 架构
+
+```
+Layer 1  Platform Agent（类 nanoclaw）
+  ✅ 读文件 / 搜索代码（keyword + vector）
+  ✅ 访问外部信息（issues, PRs, discussions, GitHub API）
+  ✅ 生成/更新结构化文档（PRD、活文档、验收报告）
+  ❌ 无 terminal 执行，❌ 无容器
+  运行位置：主应用进程内，直接调 AI API
+
+Layer 2  Coding Container（dev-worker，AIOSandbox Container A）
+  ✅ 全部 Layer 1 能力
+  ✅ terminal 执行（lint, test, build，循环迭代）
+  ✅ git 操作（branch, commit, push, PR）
+  ✅ 写文件权限（限 /workspace）
+  运行位置：AIOSandbox 隔离容器，无外部网络
+
+Layer 3  Review Container（review-worker，AIOSandbox Container B）
+  ✅ Checkout PR branch（只读）
+  ✅ npm install / build / test
+  ✅ Review Agent：读 diff + 对照 PRD 验收标准
+  ❌ 无写文件权限，❌ 无 git push
+  运行位置：AIOSandbox 独立隔离容器，有测试 DB + mock 服务
+```
+
+## 完整六阶段生命周期
+
+```
+Stage 0  需求发现      Layer 1   读已有 issues → 查重/结构化/估优先级
+Stage 1  PRD 编写      Layer 1   需求描述 + 代码上下文 → 结构化 PRD（含验收标准）
+Stage 2  技术拆解      Layer 1   PRD + 代码结构 → Issue[] + 复杂度估算 + 依赖图
+Stage 3  实现          Layer 2   opencode → branch → commit → PR
+Stage 4  Review        Layer 3   checkout → build/test → Review Agent 对照 PRD 验收
+Stage 5  验收关闭      Layer 1   PRD 验收标准 × 测试结果 = checklist → 需求关闭
+```
+
+**Issue → PR 生命周期映射**：
+
+```
+issue:{id} session（Stage 0-3）
+  ↓ dev-worker 写代码，创建 PR #N
+  ↓ copyContextBundleToPR(issueId, N)  ← Context Bundle 复制
+
+pr:{N} session（Stage 4-5）
+  ↓ review-worker 读 PRD 验收标准，运行测试
+  ↓ 生成验收报告（✅/❌/⚠️）
+  ↓ 通过 → requirement.acceptedAt 记录 → closed
+  ↓ 不通过 → feedback → resume issue session → 修复 → 重跑 review
+```
+
 ## Component Responsibilities
 
 ### AI-Native Development Platform (Server)
 
 **Web UI (Next.js 15 + React)**
-- **Dashboard**: Organization-level view across all repos
+- **Dashboard**: Organization-level view across all repos（含需求漏斗度量图）
+- **Requirements**: 需求列表和详情页（PRD 编辑器、Issue 拆解预览）
 - **Issues**: Repository issue list and detail views
 - **Discussions**: Chat interface with AI participation
-- **Agents**: Agent control panel for starting/stopping agents
+- **Agents**: Agent control panel for starting/stopping agents（含 WorkerPool 队列状态）
 
 **API Server (Next.js API Routes)**
 - **GitHub Webhooks**: Receive and process GitHub events
+- **Requirements CRUD**: Requirement 实体增删改查，PRD 生成，技术拆解
 - **Issues CRUD**: Manage issue metadata and AI enrichment
 - **Discussion Manager**: Handle chat threads and AI responses
-- **Agent Manager**: Control AIOSandbox agent lifecycle
+- **Agent Manager**: Control AIOSandbox agent lifecycle（含 WorkerPool dispatch）
+- **Session Registry**: 管理 Claude session ID，支持跨阶段 resume
 - **Real-time**: WebSocket server for live updates
 
 ### Data Layer
@@ -68,22 +121,32 @@
 
 ### AIOSandbox Architecture (Docker)
 
+两种容器类型，职责不同：
+
 ```
-AIOSandbox Environment
+Container A：dev-worker（Layer 2）
 ├── Docker Container (ephemeral, per-agent-run)
 │   ├── Agent Runtime (Node.js)
-│   ├── Code Workspace (mounted volume)
+│   ├── Code Workspace (mounted volume, 可写)
 │   ├── Test Environment (dependencies pre-installed)
-│   └── Git Configuration
+│   └── Git Configuration（有 push 权限）
 ├── Network Policies
-│   ├── Platform API: ALLOW (for logs/status)
+│   ├── Platform API: ALLOW (for logs/status/context bundle)
 │   ├── GitHub API: ALLOW
-│   ├── Internal services: ALLOW
-│   └── External internet: DENY (or restricted)
-└── Resource Limits
-    ├── CPU: 2-4 cores
-    ├── Memory: 4-8 GB
-    └── Disk: 10 GB
+│   └── External internet: DENY
+└── Context Bundle: /workspaces/req-{id}/context/ (挂载，可读写)
+
+Container B：review-worker（Layer 3，新增）
+├── Docker Container (ephemeral, per-PR-review)
+│   ├── Agent Runtime (Node.js)
+│   ├── Code Workspace (mounted volume, 只读 checkout)
+│   ├── Test Environment (测试 DB + mock 服务)
+│   └── Git Configuration（无 push 权限）
+├── Network Policies
+│   ├── Platform API: ALLOW
+│   ├── GitHub API: ALLOW (只读)
+│   └── 测试 DB: ALLOW（不连生产）
+└── Context Bundle: /workspaces/pr-{N}/context/ (挂载，可读；test-results.md 可写)
 ```
 
 **AIOSandbox Lifecycle:**
@@ -468,13 +531,56 @@ description: Agent for MatrixOne database development
 - Sandbox queue for rate limiting
 - Database read replicas
 
+## WorkerPool 并发管理
+
+```typescript
+WorkerPool {
+  'dev':    { maxConcurrent: 2, queue: Task[], active: Map<workerId, Task> }
+  'review': { maxConcurrent: 2, queue: Task[], active: Map<workerId, Task> }
+}
+
+// 分发逻辑
+dispatch(task):
+  if pool.active.size < pool.maxConcurrent:
+    assignToWorker(task)     // 立即分配
+  else:
+    pool.queue.push(task)    // 排队，UI 显示位置
+
+// 完成后自动取下一个
+onWorkerDone(workerId):
+  pool.active.delete(workerId)
+  if pool.queue.length > 0:
+    assignToWorker(pool.queue.shift())
+```
+
+## 时间度量模型
+
+```
+Requirement 时间戳:
+  createdAt          ← 需求创建
+  prdFinalizedAt     ← Stage 1 完成
+  issuesCreatedAt    ← Stage 2 完成
+  allMergedAt        ← Stage 3 完成
+  acceptedAt         ← Stage 5 完成
+
+派生指标:
+  需求澄清周期  = prdFinalizedAt - createdAt
+  技术规划周期  = issuesCreatedAt - prdFinalizedAt
+  实现周期      = allMergedAt - issuesCreatedAt
+  验收周期      = acceptedAt - allMergedAt
+  端到端周期    = acceptedAt - createdAt
+```
+
 ## Open Questions (Resolved for MVP)
 
 | Question | Decision |
 |----------|----------|
-| Agent isolation | AIOSandbox containers |
+| Agent isolation | AIOSandbox containers（Container A: dev, Container B: review） |
 | CI integration | Local tests in sandbox + GitHub Actions |
 | Authentication | GitHub OAuth + Bearer JWT |
 | Real-time updates | WebSocket |
 | MCP scope | filesystem, terminal, github |
 | Iteration policy | Defined above with handoff criteria |
+| Session management | agent_sessions 表 + Context Bundle 文件系统 |
+| Requirement entity | 独立 requirements 表，issues 软关联 |
+| Worker concurrency | WorkerPool 队列，dev 2 并发，review 2 并发 |

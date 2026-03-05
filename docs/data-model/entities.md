@@ -1,5 +1,65 @@
 # Data Model - Core Entities
 
+## Requirement
+
+顶层需求实体，聚合 PRD 文档与关联 Issue 列表，驱动完整六阶段研发生命周期。
+
+```typescript
+interface Requirement {
+  id: string;              // UUID v4
+  title: string;
+  description: string;     // 原始需求描述（一段话到多段话）
+
+  // 生命周期阶段（单向流转）
+  stage: RequirementStage;
+
+  // 关联
+  repositoryId?: string;
+  createdBy: string;       // GitHub username
+
+  // PRD 文档（复用 synthesizedDocument 机制）
+  prdDocument?: string;    // Markdown，含验收标准
+
+  // 阶段时间戳（用于度量）
+  createdAt: Date;
+  prdFinalizedAt?: Date;   // Stage 1 完成
+  issuesCreatedAt?: Date;  // Stage 2 完成（所有 issues 已创建）
+  allMergedAt?: Date;      // Stage 3 完成（所有 PR 合并）
+  acceptedAt?: Date;       // Stage 5 完成（需求验收通过）
+}
+
+type RequirementStage =
+  | 'discovery'    // Stage 0: 需求发现，初始状态
+  | 'prd'          // Stage 1: PRD 已 Finalize
+  | 'breakdown'    // Stage 2: Issues 已创建
+  | 'development'  // Stage 3: 实现中
+  | 'acceptance'   // Stage 4-5: Review & 验收中
+  | 'closed';      // 需求已关闭
+```
+
+**阶段流转规则**：单向，不可回退（`closed` 可 reopen 为 `acceptance`）。
+
+**关联关系**：
+```
+Requirement
+  ├── Issue[] (1:N, 技术拆解产物，issues.requirementId 软关联)
+  ├── prdDocument (内嵌字段，结构化 PRD + 验收标准)
+  └── AgentSession[] (各阶段 session 注册)
+```
+
+**PRD 文档结构**（由 PRD Agent 生成）：
+```markdown
+## 背景与目标
+## 用户故事
+## 功能需求
+## 非功能需求
+## 技术约束（从代码分析得出）
+## 验收标准（每条可被自动化验证）
+## 开放问题
+```
+
+---
+
 ## Issue
 
 The central entity representing a GitHub issue with AI enrichment.
@@ -28,6 +88,9 @@ interface Issue {
   aiAnalysis?: IssueAnalysis;    // Detailed analysis
   duplicateOf?: number;          // Reference to duplicate issue
   relatedIssues?: number[];      // Related issue numbers
+
+  // Requirement linkage (新增)
+  requirementId?: string;        // 关联的 Requirement（nullable，软关联）
 
   // Sync metadata
   createdAt: Date;
@@ -295,8 +358,75 @@ type ActivityType =
   | 'pr_merged'
   | 'plan_generated'
   | 'plan_finalized'
-  | 'comment_added';
+  | 'comment_added'
+  // Requirement lifecycle events（新增）
+  | 'requirement_created'
+  | 'requirement_prd_generated'
+  | 'requirement_prd_finalized'
+  | 'requirement_issues_created'
+  | 'requirement_accepted'
+  | 'requirement_closed';
 ```
+
+## AgentSession
+
+跨容器 Session 注册表，管理 Claude Agent SDK session ID 的生命周期，支持 resume 和并发隔离。
+
+```typescript
+interface AgentSession {
+  id: string;             // UUID v4
+
+  // 唯一标识本次 session 的语义 key
+  // 格式：{task_id}:{stage}:{sub_id}
+  // 示例：
+  //   "issue:42:triage:main"        → Issue 分析阶段
+  //   "issue:42:implement:main"     → dev-worker 实现
+  //   "pr:101:review:main"          → review-worker 验收
+  //   "req-101:implement:issue-42"  → 并行子任务
+  sessionKey: string;
+
+  // Claude Agent SDK 返回的 session ID（加密存储）
+  sessionId: string;
+
+  // Worker 类型
+  workerType: 'platform' | 'dev' | 'review';
+
+  // 状态流转：active → paused（等人类 gate）→ active（resume）→ completed
+  status: 'active' | 'paused' | 'completed' | 'failed';
+
+  // 时间戳
+  createdAt: Date;
+  resumedAt?: Date;
+  completedAt?: Date;
+}
+```
+
+**四种并发场景**：
+
+| 场景 | 处理方式 |
+|------|---------|
+| 同类 worker 并发 | session_key 不同，天然隔离 |
+| 跨阶段 handoff | 新 session，通过 Context Bundle 文件传递上下文 |
+| 同阶段多轮（人类审批后） | 相同 session_key，`query({resume: sessionId})` |
+| 并行子任务 | 独立 session + 共享 Context Bundle 目录 |
+
+**Context Bundle 目录结构**：
+
+```
+/workspaces/req-{id}/context/
+  triage-output.md        ← Stage 0 写入（查重结果、优先级）
+  prd-output.md           ← Stage 1 写入（完整 PRD）
+  breakdown-output.md     ← Stage 2 写入（Issue 列表）
+  implementation-plan.md  ← Stage 3 写入（dev-worker 执行计划）
+  test-results.md         ← Stage 4 写入（Review 验收报告）
+
+/workspaces/pr-{N}/context/  ← PR 创建时从 issue context 复制
+  prd-output.md           ← review-worker 读取验收标准
+  implementation-plan.md
+  review-feedback.md      ← review-worker 写入（验收不通过时）
+```
+
+---
 
 ## Repository
 
