@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "ln -sfn ../../.env .env && next dev",
+    "build": "ln -sfn ../../.env .env && next build",
+    "start": "ln -sfn ../../.env .env && next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
