@@ -62,6 +62,7 @@ MatrixOne 是一个超融合数据库，支持 OLTP、OLAP 和流处理。
 ## 代码组织结构
 
 ```
+
 pkg/
 ├── sql/              # SQL 层
 │   ├── parser/       # 语法解析
@@ -71,6 +72,7 @@ pkg/
 ├── vm/               # 虚拟机层
 ├── catalog/          # 元数据管理
 └── storage/          # 存储引擎
+
 ```
 
 ## 编码规范

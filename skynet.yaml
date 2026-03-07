@@ -1,4 +1,7 @@
 repositories:
+  - owner: matrixorigin
+    name: matrixflow
+    sync: true # onboard only, skip issue sync (too many issues)
   - owner: raphaelmansuy
     name: edgequake
     sync: true           # auto-sync issues on startup
