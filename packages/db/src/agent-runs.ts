@@ -27,7 +27,7 @@ export interface AgentArtifact {
 export interface CreateAgentRunInput {
   issueId?: string;
   pullRequestId?: string;
-  mode?: "develop" | "review" | "interactive";
+  mode?: "develop" | "review" | "interactive" | "issue_review";
   startedBy: string;
   workspaceId?: string;
 }
@@ -37,7 +37,7 @@ export interface AgentRunRow {
   issueId: string | null;
   startedBy: string;
   status: "planning" | "coding" | "testing" | "review" | "waiting_for_input" | "paused" | "cancelled" | "completed" | "failed";
-  mode: "develop" | "review" | "interactive";
+  mode: "develop" | "review" | "interactive" | "issue_review";
   pullRequestId: string | null;
   plan: unknown;
   branch: string | null;
@@ -221,6 +221,19 @@ export async function completeAgentRun(
   },
 ): Promise<void> {
   const db = getDb();
+  const existing = await getAgentRunById(id);
+  if (!existing) return;
+
+  // Cancellation is terminal and has higher precedence than completion/failure.
+  if (existing.status === "cancelled") {
+    const cancelledUpdates: Record<string, unknown> = {};
+    if (result.artifacts) cancelledUpdates.artifacts = result.artifacts;
+    if (Object.keys(cancelledUpdates).length > 0) {
+      await db.update(agentRuns).set(cancelledUpdates).where(eq(agentRuns.id, id));
+    }
+    return;
+  }
+
   const updates: Record<string, unknown> = {
     status: result.status,
     completedAt: new Date(),
@@ -284,6 +297,7 @@ export async function cancelAgentRun(id: string): Promise<boolean> {
   }
 
   await updateAgentRunStatus(id, "cancelled");
+  await setWaitingForInput(id, false);
   await appendAgentRunLog(id, {
     timestamp: new Date().toISOString(),
     level: "info",

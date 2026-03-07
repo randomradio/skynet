@@ -19,39 +19,38 @@ importers:
         specifier: ^2.4.2
         version: 2.8.12
 
-  apps/agent-runtime:
-    dependencies:
-      '@skynet/sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
-      zod:
-        specifier: ^4.1.5
-        version: 4.3.6
-    devDependencies:
-      '@types/node':
-        specifier: ^22.15.21
-        version: 22.19.13
-      tsx:
-        specifier: ^4.20.5
-        version: 4.21.0
-      typescript:
-        specifier: ^5.8.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
-
   apps/web:
     dependencies:
       '@agent-infra/sandbox':
         specifier: latest
         version: 1.0.12
+      '@skynet/cap-model':
+        specifier: workspace:*
+        version: link:../../packages/cap-model
+      '@skynet/cap-runtime':
+        specifier: workspace:*
+        version: link:../../packages/cap-runtime
+      '@skynet/cap-skills':
+        specifier: workspace:*
+        version: link:../../packages/cap-skills
       '@skynet/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@skynet/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@skynet/domain-agents':
+        specifier: workspace:*
+        version: link:../../packages/domain-agents
+      '@skynet/domain-issues':
+        specifier: workspace:*
+        version: link:../../packages/domain-issues
+      '@skynet/domain-requirements':
+        specifier: workspace:*
+        version: link:../../packages/domain-requirements
+      '@skynet/domain-review':
+        specifier: workspace:*
+        version: link:../../packages/domain-review
       '@skynet/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
@@ -111,6 +110,43 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.35)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
 
+  packages/cap-model:
+    dependencies:
+      openai:
+        specifier: ^6.25.0
+        version: 6.25.0(zod@4.3.6)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.21
+        version: 22.19.13
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/cap-runtime:
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/cap-skills:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.21
+        version: 22.19.13
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+
   packages/config:
     dependencies:
       yaml:
@@ -142,6 +178,42 @@ importers:
       drizzle-kit:
         specifier: ^0.31.4
         version: 0.31.9
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/domain-agents:
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/domain-issues:
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/domain-requirements:
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/domain-review:
+    devDependencies:
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
@@ -6363,6 +6435,7 @@ snapshots:
       get-tsconfig: 4.13.6
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   turbo-darwin-64@2.8.12:
     optional: true
@@ -6726,6 +6799,7 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod@4.3.6: {}
+  zod@4.3.6:
+    optional: true
 
   zwitch@2.0.4: {}

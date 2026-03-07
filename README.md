@@ -5,7 +5,7 @@ AI-Native Development Platform that enables cross-functional teams (PMs, enginee
 ## What it does
 
 - **GitHub Issue Sync** -- Connects to GitHub repos via PAT + webhook, syncs issues in real-time
-- **AI Issue Analysis** -- Classifies issues by type (bug/feature/task/question), priority (P0-P3), generates summaries and tags via Kimi (Moonshot)
+- **AI Issue Analysis** -- Classifies issues by type (bug/feature/task/question), priority (P0-P3), generates summaries and tags via GLM (Anthropic-compatible API)
 - **Team Discussion** -- Chat interface per issue with streaming AI responses, living document synthesis, and one-way finalization
 - **AI Agent Runs** -- AI-powered implementation plan generation and code generation from issues, with real-time log streaming
 - **Dashboard** -- Real-time stats on open/closed issues, priority breakdown, activity feed
@@ -19,8 +19,7 @@ skynet/
 │   │   ├── app/              # App Router pages + API routes
 │   │   ├── components/       # React components
 │   │   ├── hooks/            # Custom React hooks
-│   │   └── lib/              # Server utilities (ai, auth, github, agent)
-│   └── agent-runtime/        # Agent runtime for AIOSandbox (Docker)
+│   │   └── lib/              # Server utilities (ai, auth, github, agent, sandbox)
 ├── packages/
 │   ├── db/                   # Drizzle ORM schema + query functions
 │   ├── sdk/                  # Shared contracts and types
@@ -38,7 +37,7 @@ skynet/
 | Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS 4 |
 | Backend | Next.js API Routes, Drizzle ORM |
 | Database | MatrixOne (MySQL wire protocol) |
-| AI | Kimi/Moonshot (OpenAI-compatible API via `openai` package) |
+| AI | GLM 4.7 (Anthropic-compatible endpoint) |
 | Auth | GitHub OAuth + JWT sessions (`jose`) |
 | Monorepo | pnpm workspaces + Turborepo |
 
@@ -47,7 +46,7 @@ skynet/
 - **Node.js** >= 20
 - **pnpm** >= 10
 - **MatrixOne** running locally (port 6001)
-- **Moonshot API key** from [platform.moonshot.cn](https://platform.moonshot.cn)
+- **Zhipu API key** for GLM 4.7
 - **GitHub OAuth App** + **Personal Access Token**
 
 ## Setup
@@ -79,8 +78,20 @@ JWT_SECRET="a-strong-random-secret"
 GITHUB_TOKEN="ghp_your_personal_access_token"
 GITHUB_WEBHOOK_SECRET="your-webhook-secret"
 
-# AI (Moonshot/Kimi)
-MOONSHOT_API_KEY="sk-your-moonshot-api-key"
+# AI (preferred: GLM via Anthropic-compatible endpoint)
+ANTHROPIC_AUTH_TOKEN="your-zhipu-api-key"
+ANTHROPIC_BASE_URL="https://open.bigmodel.cn/api/anthropic"
+ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
+ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.5-air"
+ANTHROPIC_DEFAULT_OPUS_MODEL="glm-4.7"
+
+# Skill hub (local editable folder)
+SKILL_HUB_DIR=".skill-hub"
+
+# NanoClaw runtime (required)
+NANOCLAW_ROOT="/data/nanoclaw"
+CONTEXT_BUNDLE_ROOT=".skynet-context"
+SANDBOX_URL="http://localhost:8180"
 EOF
 
 # Next.js reads .env from the app directory, so symlink it
@@ -200,7 +211,9 @@ curl -X POST http://localhost:3000/api/agents \
 |--------|------|------|-------------|
 | GET | `/api/issues` | Yes | List issues (params: `page`, `limit`, `state`, `ai_type`, `ai_priority`, `repo_owner`, `repo_name`) |
 | GET | `/api/issues/:id` | Yes | Issue detail |
-| POST | `/api/issues/:id/analyze` | Yes | Trigger AI analysis via Kimi |
+| POST | `/api/issues/:id/analyze` | Yes | Trigger AI analysis |
+| POST | `/api/issues/:id/review` | Yes | Start issue review + handoff generation |
+| POST | `/api/issues/:id/review/confirm` | Yes | Confirm/revise handoff and start development run |
 
 ### Discussion
 | Method | Path | Auth | Description |
@@ -219,6 +232,13 @@ curl -X POST http://localhost:3000/api/agents \
 | GET | `/api/agents/:id` | Yes | Agent run detail (plan, logs, artifacts) |
 | POST | `/api/agents/:id/cancel` | Yes | Cancel a running agent |
 | GET | `/api/agents/:id/logs` | Yes | SSE stream of agent logs (real-time) |
+
+### Skills
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/skills` | Yes | List loaded skill manifests |
+| GET | `/api/skills/:skillId` | Yes | Get one skill manifest |
+| POST | `/api/skills/reload` | Yes | Reload local skill hub manifests |
 
 ### Repositories
 | Method | Path | Auth | Description |
@@ -258,15 +278,14 @@ MatrixOne returns `boolean` columns as VARCHAR `"true"`/`"false"` instead of TIN
 
 ## AI Integration
 
-Uses **Moonshot/Kimi** via the `openai` npm package with `baseURL: https://api.moonshot.cn/v1`.
+Uses the OpenAI-compatible SDK with a model provider adapter:
+- **GLM** via Z.AI Anthropic-compatible endpoint (`ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_BASE_URL`)
 
 | Use Case | Model | Context |
 |----------|-------|---------|
-| Issue analysis | `moonshot-v1-32k` | Single issue classification |
-| Chat responses | `moonshot-v1-128k` | 50 messages + document + issue body |
-| Document synthesis | `moonshot-v1-32k` | All messages + current document |
-| Plan generation | `moonshot-v1-32k` | Issue + discussion document |
-| Code generation | `moonshot-v1-128k` | Issue + plan + file descriptions |
+| Fast path | `ANTHROPIC_DEFAULT_HAIKU_MODEL` (default `glm-4.5-air`) | Lightweight synthesis/extraction |
+| Standard path | `ANTHROPIC_DEFAULT_SONNET_MODEL` (default `glm-4.7`) | Issue analysis, planning, reviews |
+| Long path | `ANTHROPIC_DEFAULT_OPUS_MODEL` (default `glm-4.7`) | Long-context generation tasks |
 
 ## Agent System (Phase 4)
 
@@ -281,7 +300,7 @@ Planning: AI generates implementation plan (files, tests, approach)
     ↓
 Coding: AI generates code for each planned file
     ↓
-Testing: (placeholder — requires AIOSandbox Docker for real execution)
+Testing: (placeholder — full lint/test execution loop not wired to runtime containers yet)
     ↓
 Review: Artifacts ready for human review
     ↓
@@ -339,7 +358,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 - [x] Health check endpoint
 
 ### Sprint 2 (Complete)
-- [x] Moonshot/Kimi AI client integration
+- [x] GLM-first model client integration
 - [x] AI issue analysis (type, priority, summary, tags)
 - [x] GitHub API client (fetch + PAT)
 - [x] Webhook receiver with HMAC-SHA256 verification
@@ -445,19 +464,17 @@ openssl rand -hex 32
 
 Set this as `GITHUB_WEBHOOK_SECRET` in `.env` AND in your GitHub repo webhook configuration.
 
-### 6. MOONSHOT_API_KEY (Kimi AI)
+### 6. ANTHROPIC_AUTH_TOKEN (GLM 4.7 via Anthropic-compatible API)
 
-Used for AI issue analysis, chat, document synthesis, and agent plan/code generation:
+Used for AI issue analysis, chat, document synthesis, and agent plan/code generation.
 
-1. Visit [platform.moonshot.cn](https://platform.moonshot.cn)
-2. Register/login
-3. Navigate to **API Keys** section
-4. Create a new API key
-5. Copy the key (starts with `sk-`) → `MOONSHOT_API_KEY`
-
-**Note**: Ensure your account has sufficient balance. The platform uses:
-- `moonshot-v1-32k` for analysis, synthesis, and plan generation
-- `moonshot-v1-128k` for chat and code generation
+1. Visit Zhipu BigModel platform and create an API key.
+2. Copy the key into `ANTHROPIC_AUTH_TOKEN`.
+3. Set `ANTHROPIC_BASE_URL` to `https://open.bigmodel.cn/api/anthropic`.
+4. Set default models:
+   - `ANTHROPIC_DEFAULT_SONNET_MODEL=glm-4.7`
+   - `ANTHROPIC_DEFAULT_HAIKU_MODEL=glm-4.5-air`
+   - `ANTHROPIC_DEFAULT_OPUS_MODEL=glm-4.7`
 
 ### Complete .env Example
 
@@ -478,8 +495,20 @@ GITHUB_TOKEN="ghp_xxxxxxxxxxxx"
 # GitHub Webhook Secret (generate with: openssl rand -hex 32)
 GITHUB_WEBHOOK_SECRET="your-webhook-signing-secret"
 
-# Moonshot/Kimi AI API Key
-MOONSHOT_API_KEY="sk-your-moonshot-api-key"
+# GLM 4.7 (Anthropic-compatible)
+ANTHROPIC_AUTH_TOKEN="your-zhipu-api-key"
+ANTHROPIC_BASE_URL="https://open.bigmodel.cn/api/anthropic"
+ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
+ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.5-air"
+ANTHROPIC_DEFAULT_OPUS_MODEL="glm-4.7"
+
+# Local skill hub
+SKILL_HUB_DIR=".skill-hub"
+
+# NanoClaw runtime (required)
+NANOCLAW_ROOT="/data/nanoclaw"
+CONTEXT_BUNDLE_ROOT=".skynet-context"
+SANDBOX_URL="http://localhost:8180"
 ```
 
 After creating `.env` at the project root, symlink it for Next.js:

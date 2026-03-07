@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import type { JWTPayload } from "jose";
 
 import { withAuth } from "@/lib/auth/with-auth";
+import { ensureAgentRunAccess } from "@/lib/auth/agent-run-access";
 import { getAgentRunById, getTerminalOutput } from "@skynet/db";
-import { isAgentRunning } from "@/lib/agent/engine";
 import type { ApiErrorResponse } from "@skynet/sdk";
 
 export const runtime = "nodejs";
@@ -16,8 +16,8 @@ const PREFIX = "[terminal/SSE]";
  */
 export const GET = withAuth(
   async (
-    _request,
-    _user: JWTPayload,
+    request,
+    user: JWTPayload,
     context: { params: Promise<Record<string, string>> },
   ): Promise<NextResponse> => {
     const params = await context.params;
@@ -40,6 +40,14 @@ export const GET = withAuth(
       return NextResponse.json(body, { status: 404 });
     }
 
+    const access = await ensureAgentRunAccess(request, user, {
+      issueId: run.issueId,
+      pullRequestId: run.pullRequestId,
+    });
+    if (!access.allowed) {
+      return access.response;
+    }
+
     if (run.mode !== "interactive") {
       console.log(`${PREFIX} [${runId.slice(0, 8)}] wrong mode: ${run.mode}`);
       const body: ApiErrorResponse = {
@@ -50,6 +58,7 @@ export const GET = withAuth(
 
     const encoder = new TextEncoder();
     let outputOffset = 0;
+    let pollTimer: NodeJS.Timeout | null = null;
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -60,13 +69,26 @@ export const GET = withAuth(
         let closed = false;
 
         const safeEnqueue = (data: Uint8Array) => {
-          if (!closed) controller.enqueue(data);
+          if (closed) return;
+          try {
+            controller.enqueue(data);
+          } catch {
+            closed = true;
+          }
         };
         const safeClose = () => {
           if (!closed) {
             closed = true;
+            if (pollTimer) {
+              clearTimeout(pollTimer);
+              pollTimer = null;
+            }
             console.log(`${PREFIX} [${runId.slice(0, 8)}] SSE stream closed after ${pollCount} polls`);
-            controller.close();
+            try {
+              controller.close();
+            } catch {
+              // stream already closed
+            }
           }
         };
 
@@ -109,10 +131,7 @@ export const GET = withAuth(
             );
 
             // Check if done
-            if (
-              TERMINAL_STATES.includes(current.status) &&
-              !isAgentRunning(runId)
-            ) {
+            if (TERMINAL_STATES.includes(current.status)) {
               console.log(`${PREFIX} [${runId.slice(0, 8)}] terminal state reached: ${current.status}`);
               safeEnqueue(
                 encoder.encode(
@@ -140,7 +159,7 @@ export const GET = withAuth(
               return;
             }
 
-            setTimeout(() => void poll(), POLL_INTERVAL);
+            pollTimer = setTimeout(() => void poll(), POLL_INTERVAL);
           } catch (err) {
             console.error(`${PREFIX} [${runId.slice(0, 8)}] poll error: ${err instanceof Error ? err.message : err}`);
             safeEnqueue(
@@ -153,6 +172,12 @@ export const GET = withAuth(
         };
 
         void poll();
+      },
+      cancel() {
+        if (pollTimer) {
+          clearTimeout(pollTimer);
+          pollTimer = null;
+        }
       },
     });
 

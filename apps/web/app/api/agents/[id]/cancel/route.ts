@@ -2,16 +2,18 @@ import { NextResponse } from "next/server";
 import type { JWTPayload } from "jose";
 
 import { withAuth } from "@/lib/auth/with-auth";
-import { cancelAgentRun } from "@skynet/db";
+import { ensureAgentRunAccess } from "@/lib/auth/agent-run-access";
+import { cancelAgentRun, getAgentRunById } from "@skynet/db";
 import { requestCancellation } from "@/lib/agent/engine";
+import { getSandbox } from "@/lib/sandbox";
 import type { ApiErrorResponse } from "@skynet/sdk";
 
 export const runtime = "nodejs";
 
 export const POST = withAuth(
   async (
-    _request,
-    _user: JWTPayload,
+    request,
+    user: JWTPayload,
     context: { params: Promise<Record<string, string>> },
   ): Promise<NextResponse> => {
     const params = await context.params;
@@ -23,8 +25,32 @@ export const POST = withAuth(
     }
 
     try {
+      const run = await getAgentRunById(params.id);
+      if (!run) {
+        const body: ApiErrorResponse = {
+          error: { code: "NOT_FOUND", message: "Agent run not found" },
+        };
+        return NextResponse.json(body, { status: 404 });
+      }
+
+      const access = await ensureAgentRunAccess(request, user, {
+        issueId: run.issueId,
+        pullRequestId: run.pullRequestId,
+      });
+      if (!access.allowed) {
+        return access.response;
+      }
+
       // Request in-memory cancellation for running agents
       requestCancellation(params.id);
+      if (run.bashSessionId) {
+        try {
+          const sandbox = getSandbox();
+          await sandbox.shell.killProcess({ id: run.bashSessionId });
+        } catch {
+          // best effort
+        }
+      }
 
       // Also cancel in DB
       const cancelled = await cancelAgentRun(params.id);

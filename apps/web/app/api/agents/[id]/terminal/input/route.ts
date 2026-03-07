@@ -3,7 +3,7 @@ import type { JWTPayload } from "jose";
 
 import { withAuth } from "@/lib/auth/with-auth";
 import { ensureAgentRunAccess } from "@/lib/auth/agent-run-access";
-import { getAgentRunById, setWaitingForInput, updateAgentRunStatus } from "@skynet/db";
+import { cancelAgentRun, getAgentRunById, setWaitingForInput, updateAgentRunStatus } from "@skynet/db";
 import { getTerminalSession, requestCancellation } from "@/lib/agent/engine";
 import { getSandbox } from "@/lib/sandbox";
 import type { ApiErrorResponse } from "@skynet/sdk";
@@ -62,6 +62,7 @@ export const POST = withAuth(
 
     if (type === "interrupt") {
       console.log(`${PREFIX} [${runId.slice(0, 8)}] sending interrupt`);
+      await cancelAgentRun(runId);
       requestCancellation(runId);
       if (run.bashSessionId) {
         try {

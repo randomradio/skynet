@@ -2,18 +2,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // We test the function signature and that it calls the AI client correctly
 describe("synthesizeDocument", () => {
-  const originalKey = process.env.AI_API_KEY;
+  const originalToken = process.env.ANTHROPIC_AUTH_TOKEN;
 
   beforeEach(() => {
     vi.resetModules();
-    process.env.AI_API_KEY = "test-key";
+    process.env.ANTHROPIC_AUTH_TOKEN = "test-key";
   });
 
   afterEach(() => {
-    if (originalKey !== undefined) {
-      process.env.AI_API_KEY = originalKey;
+    if (originalToken !== undefined) {
+      process.env.ANTHROPIC_AUTH_TOKEN = originalToken;
     } else {
-      delete process.env.AI_API_KEY;
+      delete process.env.ANTHROPIC_AUTH_TOKEN;
     }
   });
 

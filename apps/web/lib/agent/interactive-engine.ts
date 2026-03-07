@@ -1,10 +1,12 @@
 import crypto from "node:crypto";
 import {
+  getAgentRunById,
   getIssueById,
   updateAgentRunStatus,
   appendAgentRunLog,
   appendTerminalOutput,
   completeAgentRun,
+  updateAgentRunArtifacts,
   getWorkspaceByIssueId,
   getWorkspaceById,
   createWorkspace,
@@ -48,6 +50,11 @@ async function log(
   console.log(`${PREFIX} [${runId.slice(0, 8)}] ${level}: ${message}`);
   await appendAgentRunLog(runId, entry);
   onProgress?.(entry);
+}
+
+async function isRunCancelled(runId: string): Promise<boolean> {
+  const run = await getAgentRunById(runId);
+  return run?.status === "cancelled";
 }
 
 export async function executeInteractiveAgent(
@@ -217,9 +224,6 @@ export async function executeInteractiveAgent(
     if (process.env.ZHIPU_API_KEY) {
       env.ZHIPU_API_KEY = process.env.ZHIPU_API_KEY;
     }
-    if (process.env.AI_API_KEY) {
-      env.AI_API_KEY = process.env.AI_API_KEY;
-    }
     if (token) {
       env.GITHUB_TOKEN = token;
     }
@@ -243,6 +247,14 @@ export async function executeInteractiveAgent(
         selectedModel.reason ? { reason: selectedModel.reason } : undefined,
         onProgress,
       );
+    }
+
+    if (await isRunCancelled(runId)) {
+      if (workspace) {
+        await pauseWorkspace(workspace.id, 24);
+      }
+      await log(runId, "info", "Interactive agent cancelled before command start", undefined, onProgress);
+      return { session };
     }
 
     await updateAgentRunStatus(runId, "coding");
@@ -277,6 +289,23 @@ export async function executeInteractiveAgent(
       }
     } catch (err) {
       console.log(`${PREFIX} [${runId.slice(0, 8)}] no diff: ${err instanceof Error ? err.message : err}`);
+    }
+
+    if (await isRunCancelled(runId)) {
+      if (artifacts.length > 0) {
+        await updateAgentRunArtifacts(runId, artifacts);
+      }
+      if (workspace) {
+        await pauseWorkspace(workspace.id, 24);
+      }
+      await log(
+        runId,
+        "info",
+        "Interactive agent cancelled — skipping validation and publish stages",
+        { exitCode, artifactCount: artifacts.length },
+        onProgress,
+      );
+      return { session };
     }
 
     // 9. Run validations and persist a test report artifact.
@@ -316,6 +345,15 @@ export async function executeInteractiveAgent(
       await log(runId, "info", "Validation skipped by run option", undefined, onProgress);
     } else {
       await log(runId, "warn", "Validation skipped because the coding process failed", undefined, onProgress);
+    }
+
+    if (await isRunCancelled(runId)) {
+      await updateAgentRunArtifacts(runId, artifacts);
+      if (workspace) {
+        await pauseWorkspace(workspace.id, 24);
+      }
+      await log(runId, "info", "Interactive agent cancelled after validation", undefined, onProgress);
+      return { session };
     }
 
     // 10. Push branch + create draft PR when configured.
