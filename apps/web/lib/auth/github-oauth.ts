@@ -1,5 +1,7 @@
 const GITHUB_ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token";
 const GITHUB_USER_URL = "https://api.github.com/user";
+const DEFAULT_OAUTH_TIMEOUT_MS = 15_000;
+let proxyDispatcherPromise: Promise<unknown | null> | null = null;
 
 interface GithubAccessTokenResponse {
   access_token?: string;
@@ -60,6 +62,76 @@ function getGithubClientCredentials(): {
   return { clientId, clientSecret };
 }
 
+function parseTimeoutMs(value: string | undefined): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return DEFAULT_OAUTH_TIMEOUT_MS;
+  }
+  return Math.floor(parsed);
+}
+
+function getOauthTimeoutMs(): number {
+  return parseTimeoutMs(process.env.GITHUB_OAUTH_TIMEOUT_MS);
+}
+
+function isAbortLikeError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error.name === "AbortError" || error.name === "TimeoutError")
+  );
+}
+
+async function safeFetch(
+  url: string,
+  init: RequestInit,
+  onTimeout: GithubOAuthError,
+  onNetworkError: (message: string) => GithubOAuthError,
+): Promise<Response> {
+  const requestInit = await withProxyDispatcher(init);
+  try {
+    return await fetch(url, requestInit);
+  } catch (error) {
+    if (isAbortLikeError(error)) {
+      throw onTimeout;
+    }
+    const message =
+      error instanceof Error ? error.message : "Unknown network error";
+    throw onNetworkError(message);
+  }
+}
+
+async function resolveProxyDispatcher(): Promise<unknown | null> {
+  const proxyUrl =
+    process.env.HTTPS_PROXY ??
+    process.env.https_proxy ??
+    process.env.HTTP_PROXY ??
+    process.env.http_proxy;
+  if (!proxyUrl) return null;
+
+  if (!proxyDispatcherPromise) {
+    proxyDispatcherPromise = (async () => {
+      try {
+        const { EnvHttpProxyAgent } = await import("undici");
+        return new EnvHttpProxyAgent();
+      } catch {
+        return null;
+      }
+    })();
+  }
+
+  return proxyDispatcherPromise;
+}
+
+async function withProxyDispatcher(init: RequestInit): Promise<RequestInit> {
+  const dispatcher = await resolveProxyDispatcher();
+  if (!dispatcher) return init;
+  return {
+    ...init,
+    // Node.js (undici) supports `dispatcher`; keep as unknown for type compatibility.
+    ...( { dispatcher } as unknown as RequestInit ),
+  };
+}
+
 async function readJsonBody(response: Response): Promise<unknown> {
   try {
     return await response.json();
@@ -113,8 +185,10 @@ function parseGithubUserResponse(body: unknown): GithubUserResponse | null {
 
 export async function exchangeGithubCodeForAccessToken(
   code: string,
+  options?: { redirectUri?: string },
 ): Promise<string> {
   const { clientId, clientSecret } = getGithubClientCredentials();
+  const timeoutMs = getOauthTimeoutMs();
 
   const tokenBody: Record<string, string> = {
     client_id: clientId,
@@ -123,26 +197,46 @@ export async function exchangeGithubCodeForAccessToken(
   };
 
   // If APP_URL is set, include redirect_uri to match the one sent in the authorize URL
-  const appUrl = process.env.APP_URL;
-  if (appUrl) {
-    tokenBody.redirect_uri = `${appUrl}/api/auth/github/callback`;
+  const redirectUri =
+    options?.redirectUri ??
+    (process.env.APP_URL
+      ? `${process.env.APP_URL}/api/auth/github/callback`
+      : null);
+  if (redirectUri) {
+    tokenBody.redirect_uri = redirectUri;
   }
 
-  const response = await fetch(GITHUB_ACCESS_TOKEN_URL, {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json",
-      "user-agent": "skynet-web-auth",
+  const response = await safeFetch(
+    GITHUB_ACCESS_TOKEN_URL,
+    {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "user-agent": "skynet-web-auth",
+      },
+      body: JSON.stringify(tokenBody),
+      signal: AbortSignal.timeout(timeoutMs),
     },
-    body: JSON.stringify(tokenBody),
-  });
+    new GithubOAuthError(
+      "GITHUB_OAUTH_EXCHANGE_FAILED",
+      `GitHub OAuth token exchange timed out after ${timeoutMs}ms.`,
+      504,
+    ),
+    (message) =>
+      new GithubOAuthError(
+        "GITHUB_OAUTH_EXCHANGE_FAILED",
+        `GitHub OAuth token exchange failed: ${message}`,
+        502,
+      ),
+  );
 
   const body = parseGithubAccessTokenResponse(await readJsonBody(response));
   if (!response.ok) {
+    const details = body?.error_description ?? body?.error ?? "Unknown error";
     throw new GithubOAuthError(
       "GITHUB_OAUTH_EXCHANGE_FAILED",
-      "GitHub OAuth token exchange failed.",
+      `GitHub OAuth token exchange failed (${response.status}): ${details}`,
       502,
     );
   }
@@ -193,19 +287,38 @@ export async function exchangeGithubCodeForAccessToken(
 export async function fetchGithubUserProfile(
   githubAccessToken: string,
 ): Promise<GithubUserProfile> {
-  const response = await fetch(GITHUB_USER_URL, {
-    method: "GET",
-    headers: {
-      accept: "application/vnd.github+json",
-      authorization: `Bearer ${githubAccessToken}`,
-      "user-agent": "skynet-web-auth",
+  const timeoutMs = getOauthTimeoutMs();
+  const response = await safeFetch(
+    GITHUB_USER_URL,
+    {
+      method: "GET",
+      headers: {
+        accept: "application/vnd.github+json",
+        authorization: `Bearer ${githubAccessToken}`,
+        "user-agent": "skynet-web-auth",
+      },
+      signal: AbortSignal.timeout(timeoutMs),
     },
-  });
+    new GithubOAuthError(
+      "GITHUB_USER_FETCH_FAILED",
+      `GitHub user profile request timed out after ${timeoutMs}ms.`,
+      504,
+    ),
+    (message) =>
+      new GithubOAuthError(
+        "GITHUB_USER_FETCH_FAILED",
+        `Failed to load GitHub user profile: ${message}`,
+        502,
+      ),
+  );
 
   if (!response.ok) {
+    const body = parseObject(await readJsonBody(response));
+    const upstreamMessage =
+      typeof body?.message === "string" ? body.message : "Unknown error";
     throw new GithubOAuthError(
       "GITHUB_USER_FETCH_FAILED",
-      "Failed to load GitHub user profile.",
+      `Failed to load GitHub user profile (${response.status}): ${upstreamMessage}`,
       502,
     );
   }

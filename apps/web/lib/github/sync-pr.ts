@@ -4,6 +4,7 @@ import {
   getDiscussionByIssueId,
   getIssueByNumber,
   insertMessage,
+  touchRepositorySyncTimestamp,
 } from "@skynet/db";
 import { getGitHubClient, type GitHubPullRequest } from "./client";
 
@@ -223,6 +224,8 @@ export async function fullSyncPullRequests(owner: string, repo: string): Promise
     if (prs.length < 30) break;
     page++;
   }
+
+  await touchRepositorySyncTimestamp(owner, repo).catch(() => {});
 
   return synced;
 }

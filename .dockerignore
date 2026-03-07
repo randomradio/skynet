@@ -1,0 +1,12 @@
+.git
+.gitignore
+.claude
+.codex
+.turbo
+node_modules
+**/node_modules
+**/.next
+**/dist
+downloads
+test-results
+*.log

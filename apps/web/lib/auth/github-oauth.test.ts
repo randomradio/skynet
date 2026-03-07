@@ -54,6 +54,28 @@ describe("github oauth helpers", () => {
     );
   });
 
+  it("uses explicit redirect uri override during oauth code exchange", async () => {
+    process.env.GITHUB_CLIENT_ID = "test-client-id";
+    process.env.GITHUB_CLIENT_SECRET = "test-client-secret";
+
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      new Response(JSON.stringify({ access_token: "gho_test_access" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await exchangeGithubCodeForAccessToken("oauth-code", {
+      redirectUri: "https://skynet.example.com/api/auth/github/callback",
+    });
+
+    const init = fetchMock.mock.calls[0]?.[1] as { body?: string } | undefined;
+    expect(init?.body).toContain(
+      "\"redirect_uri\":\"https://skynet.example.com/api/auth/github/callback\"",
+    );
+  });
+
   it("returns typed error when oauth code is invalid", async () => {
     process.env.GITHUB_CLIENT_ID = "test-client-id";
     process.env.GITHUB_CLIENT_SECRET = "test-client-secret";

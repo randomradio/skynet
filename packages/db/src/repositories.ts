@@ -53,6 +53,19 @@ export async function upsertRepository(input: UpsertRepositoryInput): Promise<st
   return id;
 }
 
+export async function getRepositoryById(
+  id: string,
+): Promise<typeof repositories.$inferSelect | null> {
+  if (!hasDatabaseUrl()) return null;
+  const db = getDb();
+  const rows = await db
+    .select()
+    .from(repositories)
+    .where(eq(repositories.id, id))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
 export async function getRepositoryByOwnerName(
   owner: string,
   name: string,
@@ -70,4 +83,19 @@ export async function listRepositories(): Promise<Array<typeof repositories.$inf
   if (!hasDatabaseUrl()) return [];
   const db = getDb();
   return db.select().from(repositories);
+}
+
+export async function touchRepositorySyncTimestamp(
+  owner: string,
+  name: string,
+): Promise<void> {
+  if (!hasDatabaseUrl()) return;
+  const db = getDb();
+  await db
+    .update(repositories)
+    .set({
+      lastSyncedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(and(eq(repositories.owner, owner), eq(repositories.name, name)));
 }

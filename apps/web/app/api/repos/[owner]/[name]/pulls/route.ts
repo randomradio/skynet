@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { withAuth } from "@/lib/auth/with-auth";
-import { listPullRequestsPage } from "@skynet/db";
+import { withRepoAccess } from "@/lib/auth/with-repo-access";
+import { hasGitHubToken } from "@/lib/github/client";
+import { fullSyncPullRequests } from "@/lib/github/sync-pr";
+import { getRepositoryByOwnerName, listPullRequestsPage } from "@skynet/db";
 
 export const runtime = "nodejs";
 
@@ -9,7 +11,25 @@ async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try { return await fn(); } catch { return fallback; }
 }
 
-export const GET = withAuth(async (
+function parsePositiveInt(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.floor(parsed);
+}
+
+async function shouldAutoSyncRepository(owner: string, name: string): Promise<boolean> {
+  const repo = await safe(() => getRepositoryByOwnerName(owner, name), null);
+  if (!repo) return false;
+
+  const minIntervalMs = parsePositiveInt(
+    process.env.REPO_AUTO_SYNC_MIN_INTERVAL_MS,
+    5 * 60 * 1000,
+  );
+  if (!repo.lastSyncedAt) return true;
+  return Date.now() - repo.lastSyncedAt.getTime() >= minIntervalMs;
+}
+
+export const GET = withRepoAccess(async (
   request: NextRequest,
   _user,
   context: { params: Promise<Record<string, string>> },
@@ -20,7 +40,7 @@ export const GET = withAuth(async (
   const limit = Number.parseInt(sp.get("limit") ?? "20", 10);
   const state = sp.get("state") as "open" | "closed" | "merged" | undefined;
 
-  const result = await safe(
+  let result = await safe(
     () => listPullRequestsPage({
       page,
       limit,
@@ -30,6 +50,28 @@ export const GET = withAuth(async (
     }),
     { items: [], page, limit, total: 0 },
   );
+
+  const canAutoSync =
+    result.total === 0 &&
+    page <= 1 &&
+    !state &&
+    hasGitHubToken() &&
+    (await shouldAutoSyncRepository(owner, name));
+
+  if (canAutoSync) {
+    await safe(() => fullSyncPullRequests(owner, name), 0);
+    result = await safe(
+      () =>
+        listPullRequestsPage({
+          page,
+          limit,
+          repoOwner: owner,
+          repoName: name,
+          state: state || undefined,
+        }),
+      { items: [], page, limit, total: 0 },
+    );
+  }
 
   return NextResponse.json({
     pullRequests: result.items.map((pr) => ({

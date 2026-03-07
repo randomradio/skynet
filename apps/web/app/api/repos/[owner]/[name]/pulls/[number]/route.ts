@@ -1,12 +1,56 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { withAuth } from "@/lib/auth/with-auth";
-import { getPullRequestByNumber, getIssueByNumber } from "@skynet/db";
+import { withRepoAccess } from "@/lib/auth/with-repo-access";
+import { getGitHubClient, hasGitHubToken } from "@/lib/github/client";
+import { extractLinkedIssues } from "@/lib/github/sync-pr";
+import {
+  getPullRequestByNumber,
+  getIssueByNumber,
+  upsertPullRequestFromGitHub,
+} from "@skynet/db";
 import type { ApiErrorResponse } from "@skynet/sdk";
 
 export const runtime = "nodejs";
 
-export const GET = withAuth(async (
+function mapGitHubPullRequestToDb(input: {
+  id: number;
+  number: number;
+  title: string;
+  body: string | null;
+  state: "open" | "closed";
+  merged: boolean;
+  head: { ref: string };
+  base: { ref: string };
+  user: { id: number };
+  additions: number;
+  deletions: number;
+  changed_files: number;
+  created_at: string;
+  updated_at: string;
+  merged_at: string | null;
+}, owner: string, repo: string) {
+  return {
+    githubId: input.id,
+    number: input.number,
+    repoOwner: owner,
+    repoName: repo,
+    title: input.title,
+    body: input.body,
+    state: input.merged ? "merged" : input.state,
+    headBranch: input.head.ref,
+    baseBranch: input.base.ref,
+    authorGithubId: input.user.id,
+    linkedIssueNumbers: extractLinkedIssues(input.body, input.head.ref),
+    additions: input.additions,
+    deletions: input.deletions,
+    changedFiles: input.changed_files,
+    createdAt: new Date(input.created_at),
+    updatedAt: new Date(input.updated_at),
+    mergedAt: input.merged_at ? new Date(input.merged_at) : null,
+  } as const;
+}
+
+export const GET = withRepoAccess(async (
   _request: NextRequest,
   _user,
   context: { params: Promise<Record<string, string>> },
@@ -22,7 +66,18 @@ export const GET = withAuth(async (
   }
 
   try {
-    const pr = await getPullRequestByNumber(owner, name, prNumber);
+    let pr = await getPullRequestByNumber(owner, name, prNumber);
+    if (!pr && hasGitHubToken()) {
+      try {
+        const githubPr = await getGitHubClient().getPullRequest(owner, name, prNumber);
+        await upsertPullRequestFromGitHub(
+          mapGitHubPullRequestToDb(githubPr, owner, name),
+        );
+        pr = await getPullRequestByNumber(owner, name, prNumber);
+      } catch {
+        // fall through to 404 below
+      }
+    }
 
     if (!pr) {
       const body: ApiErrorResponse = {

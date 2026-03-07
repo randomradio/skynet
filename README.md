@@ -77,6 +77,7 @@ JWT_SECRET="a-strong-random-secret"
 # GitHub PAT (for API calls + webhooks)
 GITHUB_TOKEN="ghp_your_personal_access_token"
 GITHUB_WEBHOOK_SECRET="your-webhook-secret"
+GITHUB_OAUTH_TIMEOUT_MS="15000"
 
 # AI (preferred: GLM via Anthropic-compatible endpoint)
 ANTHROPIC_AUTH_TOKEN="your-zhipu-api-key"
@@ -92,6 +93,9 @@ SKILL_HUB_DIR=".skill-hub"
 NANOCLAW_ROOT="/data/nanoclaw"
 CONTEXT_BUNDLE_ROOT=".skynet-context"
 SANDBOX_URL="http://localhost:8180"
+
+# Auto-sync interval for issue/PR DB cache warmup
+REPO_AUTO_SYNC_MIN_INTERVAL_MS="300000"
 EOF
 
 # Next.js reads .env from the app directory, so symlink it
@@ -127,6 +131,22 @@ pnpm --filter @skynet/web dev     # Web app only
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+### 5. Run in Docker (optional)
+
+```bash
+docker compose up -d matrixone sandbox web
+curl -sS http://localhost:3000/api/health
+```
+
+`docker-compose.yml` runs:
+- `matrixone` on port `6001`
+- `sandbox` on port `8180`
+- `web` on port `3000`
+
+For container networking, use:
+- `DATABASE_URL_DOCKER` (default `mysql://root:111@matrixone:6001/skynet`)
+- `SANDBOX_URL_DOCKER` (default `http://sandbox:8080`)
 
 ## Usage
 
@@ -363,6 +383,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 - [x] GitHub API client (fetch + PAT)
 - [x] Webhook receiver with HMAC-SHA256 verification
 - [x] Full repository issue sync
+- [x] Issue/PR read-through DB cache warmup (auto-sync on cache miss)
 - [x] Issue list page with filters and pagination
 - [x] Issue detail page with AI analysis panel
 - [x] Dashboard with real stats and activity feed
@@ -491,6 +512,7 @@ JWT_SECRET="your-strong-random-secret-here"
 
 # GitHub PAT (fine-grained token with Issues + Contents + PR permissions)
 GITHUB_TOKEN="ghp_xxxxxxxxxxxx"
+GITHUB_OAUTH_TIMEOUT_MS="15000"
 
 # GitHub Webhook Secret (generate with: openssl rand -hex 32)
 GITHUB_WEBHOOK_SECRET="your-webhook-signing-secret"
@@ -509,6 +531,12 @@ SKILL_HUB_DIR=".skill-hub"
 NANOCLAW_ROOT="/data/nanoclaw"
 CONTEXT_BUNDLE_ROOT=".skynet-context"
 SANDBOX_URL="http://localhost:8180"
+
+# Cache warmup and Docker overrides
+REPO_AUTO_SYNC_MIN_INTERVAL_MS="300000"
+DATABASE_URL_DOCKER="mysql://root:111@matrixone:6001/skynet"
+SANDBOX_URL_DOCKER="http://sandbox:8080"
+WEB_PORT="3000"
 ```
 
 After creating `.env` at the project root, symlink it for Next.js:

@@ -6,6 +6,7 @@ import {
   GithubOAuthError,
 } from "@/lib/auth/github-oauth";
 import { issuePlatformSession } from "@/lib/auth/platform-session";
+import { buildGithubAccessTokenCookie } from "@/lib/auth/github-session";
 import { upsertUser } from "@skynet/db";
 import type { ApiErrorResponse } from "@skynet/sdk";
 
@@ -39,7 +40,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const githubAccessToken = await exchangeGithubCodeForAccessToken(code);
+    const githubAccessToken = await exchangeGithubCodeForAccessToken(code, {
+      redirectUri: `${request.nextUrl.origin}/api/auth/github/callback`,
+    });
     const githubUser = await fetchGithubUserProfile(githubAccessToken);
 
     // Persist or update the user in the database (fire-and-forget if DB not configured)
@@ -63,6 +66,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const baseUrl = process.env.APP_URL || request.url;
     const response = NextResponse.redirect(new URL("/dashboard", baseUrl));
     response.cookies.set(issuedSession.sessionCookie);
+    response.cookies.set(buildGithubAccessTokenCookie(githubAccessToken));
 
     return response;
   } catch (error) {

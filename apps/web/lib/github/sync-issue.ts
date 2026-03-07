@@ -1,6 +1,7 @@
 import {
   upsertIssueFromGitHub,
   insertActivity,
+  touchRepositorySyncTimestamp,
 } from "@skynet/db";
 import { getGitHubClient, type GitHubIssue } from "./client";
 
@@ -100,6 +101,8 @@ export async function fullSyncRepository(owner: string, repo: string): Promise<n
     if (ghIssues.length < 100) break;
     page++;
   }
+
+  await touchRepositorySyncTimestamp(owner, repo).catch(() => {});
 
   return synced;
 }
