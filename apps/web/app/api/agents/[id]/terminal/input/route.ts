@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import type { JWTPayload } from "jose";
 
 import { withAuth } from "@/lib/auth/with-auth";
-import { getAgentRunById } from "@skynet/db";
+import { ensureAgentRunAccess } from "@/lib/auth/agent-run-access";
+import { getAgentRunById, setWaitingForInput, updateAgentRunStatus } from "@skynet/db";
 import { getTerminalSession, requestCancellation } from "@/lib/agent/engine";
+import { getSandbox } from "@/lib/sandbox";
 import type { ApiErrorResponse } from "@skynet/sdk";
 
 export const runtime = "nodejs";
@@ -17,7 +19,7 @@ const PREFIX = "[terminal/input]";
 export const POST = withAuth(
   async (
     request: NextRequest,
-    _user: JWTPayload,
+    user: JWTPayload,
     context: { params: Promise<Record<string, string>> },
   ): Promise<NextResponse> => {
     const params = await context.params;
@@ -38,6 +40,14 @@ export const POST = withAuth(
       return NextResponse.json(body, { status: 404 });
     }
 
+    const access = await ensureAgentRunAccess(request, user, {
+      issueId: run.issueId,
+      pullRequestId: run.pullRequestId,
+    });
+    if (!access.allowed) {
+      return access.response;
+    }
+
     if (run.mode !== "interactive") {
       const body: ApiErrorResponse = {
         error: { code: "INVALID_REQUEST", message: "Input is only available for interactive mode" },
@@ -53,6 +63,14 @@ export const POST = withAuth(
     if (type === "interrupt") {
       console.log(`${PREFIX} [${runId.slice(0, 8)}] sending interrupt`);
       requestCancellation(runId);
+      if (run.bashSessionId) {
+        try {
+          const sandbox = getSandbox();
+          await sandbox.shell.killProcess({ id: run.bashSessionId });
+        } catch {
+          // best effort
+        }
+      }
       return NextResponse.json({ ok: true, action: "interrupted" });
     }
 
@@ -64,8 +82,23 @@ export const POST = withAuth(
     }
 
     const session = getTerminalSession(runId);
-    if (!session) {
-      console.log(`${PREFIX} [${runId.slice(0, 8)}] no active terminal session found`);
+    if (session) {
+      try {
+        await session.sendInput(input!);
+        console.log(`${PREFIX} [${runId.slice(0, 8)}] input sent via in-memory session`);
+        return NextResponse.json({ ok: true });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to send input";
+        console.error(`${PREFIX} [${runId.slice(0, 8)}] sendInput error: ${message}`);
+        const errBody: ApiErrorResponse = {
+          error: { code: "TERMINAL_ERROR", message },
+        };
+        return NextResponse.json(errBody, { status: 500 });
+      }
+    }
+
+    if (!run.bashSessionId) {
+      console.log(`${PREFIX} [${runId.slice(0, 8)}] no terminal session available`);
       const errBody: ApiErrorResponse = {
         error: { code: "NOT_FOUND", message: "No active terminal session for this agent run" },
       };
@@ -73,12 +106,26 @@ export const POST = withAuth(
     }
 
     try {
-      await session.sendInput(input!);
-      console.log(`${PREFIX} [${runId.slice(0, 8)}] input sent successfully`);
-      return NextResponse.json({ ok: true });
+      const sandbox = getSandbox();
+      const writeResult = await sandbox.shell.writeToProcess({
+        id: run.bashSessionId,
+        input: input!,
+        press_enter: !input!.endsWith("\n"),
+      });
+      if (!writeResult.ok) {
+        const errBody: ApiErrorResponse = {
+          error: { code: "TERMINAL_ERROR", message: "Failed to write input to sandbox session" },
+        };
+        return NextResponse.json(errBody, { status: 500 });
+      }
+
+      await setWaitingForInput(runId, false);
+      await updateAgentRunStatus(runId, "coding");
+      console.log(`${PREFIX} [${runId.slice(0, 8)}] input sent via sandbox fallback session`);
+      return NextResponse.json({ ok: true, via: "sandbox" });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to send input";
-      console.error(`${PREFIX} [${runId.slice(0, 8)}] sendInput error: ${message}`);
+      console.error(`${PREFIX} [${runId.slice(0, 8)}] fallback sendInput error: ${message}`);
       const errBody: ApiErrorResponse = {
         error: { code: "TERMINAL_ERROR", message },
       };

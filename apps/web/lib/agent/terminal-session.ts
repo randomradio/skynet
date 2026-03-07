@@ -87,7 +87,7 @@ export class TerminalSession {
         if (!result.ok) {
           consecutiveFailures++;
           console.log(`${PREFIX} [${this.sessionId}] poll#${pollCount} view FAILED (consecutive=${consecutiveFailures})`);
-          if (consecutiveFailures >= 10) {
+          if (consecutiveFailures >= 60) {
             console.log(`${PREFIX} [${this.sessionId}] giving up after ${consecutiveFailures} consecutive failures`);
             return { exitCode: -1 };
           }

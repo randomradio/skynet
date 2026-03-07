@@ -7,6 +7,27 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function buildProxyPrefix(): string {
+  const vars: Array<[string, string | undefined]> = [
+    ["HTTP_PROXY", process.env.SANDBOX_HTTP_PROXY],
+    ["HTTPS_PROXY", process.env.SANDBOX_HTTPS_PROXY],
+    ["ALL_PROXY", process.env.SANDBOX_ALL_PROXY],
+    ["NO_PROXY", process.env.SANDBOX_NO_PROXY],
+  ];
+
+  const exports = vars
+    .filter(([, value]) => Boolean(value))
+    .map(([key, value]) => `export ${key}=${JSON.stringify(value!)} && export ${key.toLowerCase()}=${JSON.stringify(value!)}`);
+
+  return exports.join(" && ");
+}
+
+function withProxy(command: string): string {
+  const prefix = buildProxyPrefix();
+  if (!prefix) return command;
+  return `${prefix} && ${command}`;
+}
+
 /**
  * Execute a command in the sandbox using async+poll to avoid SDK HTTP timeout.
  *
@@ -87,9 +108,27 @@ async function exec(
     console.error(`[sandbox/exec] timed out waiting for: ${command.slice(0, 80)}`);
     return { stdout: "", exitCode: 1 };
   } finally {
-    // Best-effort cleanup
+    // Best-effort cleanup. Kill first so timed-out async commands don't leak.
+    sandbox.shell.killProcess({ id: sessionId }).catch(() => {});
     sandbox.shell.cleanupSession(sessionId).catch(() => {});
   }
+}
+
+export async function runSandboxCommand(
+  sandbox: SandboxClient,
+  command: string,
+  options?: {
+    execDir?: string;
+    timeoutSec?: number;
+    useProxy?: boolean;
+  },
+): Promise<{ stdout: string; exitCode: number }> {
+  return exec(
+    sandbox,
+    options?.useProxy ? withProxy(command) : command,
+    options?.execDir,
+    options?.timeoutSec,
+  );
 }
 
 /**
@@ -108,6 +147,13 @@ export async function ensureRepoCloned(
   // Check if already cloned
   const check = await exec(sandbox, `test -d "${repoPath}/.git" && echo exists`);
   if (check.stdout.trim() === "exists") {
+    // Normalize remote URL in case a previous authenticated push left credentials in origin.
+    await exec(
+      sandbox,
+      `cd "${repoPath}" && git remote set-url origin "https://github.com/${owner}/${name}.git" 2>&1`,
+      undefined,
+      10,
+    );
     return repoPath;
   }
 
@@ -115,19 +161,31 @@ export async function ensureRepoCloned(
   await exec(sandbox, `mkdir -p "${REPOS_BASE}/${owner}"`);
 
   // Shallow clone with token auth
-  const cloneUrl = `https://x-access-token:${token}@github.com/${owner}/${name}.git`;
-  const result = await exec(
-    sandbox,
-    `git clone --depth 50 "${cloneUrl}" "${repoPath}" 2>&1`,
-    undefined,
-    180,
-  );
+  const encodedToken = encodeURIComponent(token);
+  const cloneUrl = `https://x-access-token:${encodedToken}@github.com/${owner}/${name}.git`;
 
-  if (result.exitCode !== 0) {
-    throw new Error(`Failed to clone ${owner}/${name}: ${result.stdout}`);
+  let lastError = "";
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const result = await exec(
+      sandbox,
+      withProxy(`git clone --depth 50 --no-single-branch "${cloneUrl}" "${repoPath}" 2>&1`),
+      undefined,
+      600,
+    );
+
+    if (result.exitCode === 0) {
+      return repoPath;
+    }
+
+    lastError = result.stdout;
+    // Clean partial clone before retry.
+    await exec(sandbox, `rm -rf "${repoPath}"`);
+    if (attempt < 2) {
+      await sleep(1500);
+    }
   }
 
-  return repoPath;
+  throw new Error(`Failed to clone ${owner}/${name}: ${lastError}`);
 }
 
 /**
@@ -138,10 +196,26 @@ export async function fetchLatest(
   sandbox: SandboxClient,
   repoPath: string,
 ): Promise<void> {
-  const result = await exec(sandbox, "git fetch origin --depth 50 2>&1", repoPath, 120);
-  if (result.exitCode !== 0) {
-    throw new Error(`Failed to fetch: ${result.stdout}`);
+  // Best-effort cleanup for stale locks left by interrupted git operations.
+  await exec(
+    sandbox,
+    "rm -f .git/shallow.lock .git/index.lock .git/FETCH_HEAD.lock",
+    repoPath,
+    10,
+  );
+
+  // Keep this bounded to avoid long planning stalls when network/proxy is degraded.
+  const result = await exec(
+    sandbox,
+    withProxy("git fetch origin '+refs/heads/*:refs/remotes/origin/*' --depth 50 2>&1"),
+    repoPath,
+    90,
+  );
+  if (result.exitCode === 0) {
+    return;
   }
+
+  throw new Error(`Failed to fetch: ${result.stdout}`);
 }
 
 /**

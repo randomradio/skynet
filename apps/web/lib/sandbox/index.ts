@@ -5,6 +5,7 @@ export {
   createWorktree,
   cleanupWorktree,
   getDiffStats,
+  runSandboxCommand,
 } from "./git";
 export {
   getFileTree,
@@ -21,4 +22,5 @@ export {
   getWorkingFileDiff,
   discardChanges,
   commitAndPush,
+  pushCurrentBranch,
 } from "./code-writer";

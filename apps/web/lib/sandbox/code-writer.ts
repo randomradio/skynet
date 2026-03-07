@@ -11,6 +11,26 @@ async function exec(
   return { stdout: data?.output ?? "", exitCode: data?.exit_code ?? 1 };
 }
 
+function buildAuthedRemoteUrl(remote: string, token: string): string {
+  let normalized = remote.trim();
+  if (normalized.startsWith("git@github.com:")) {
+    normalized = `https://github.com/${normalized.slice("git@github.com:".length)}`;
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(normalized);
+  } catch {
+    throw new Error(`Unsupported git remote URL: ${remote}`);
+  }
+  if (parsed.protocol !== "https:") {
+    throw new Error(`Unsupported git remote URL: ${remote}`);
+  }
+  parsed.username = "";
+  parsed.password = "";
+
+  return `https://x-access-token:${encodeURIComponent(token)}@${parsed.host}${parsed.pathname}${parsed.search}${parsed.hash}`;
+}
+
 /**
  * Write content to a file in the sandbox worktree.
  * Uses a quoted heredoc (single-quoted delimiter) so shell doesn't expand variables.
@@ -53,7 +73,6 @@ export async function applyFix(
   newContent: string,
 ): Promise<void> {
   // Delete existing lines and insert new content using sed
-  const escapedContent = newContent.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/&/g, "\\&");
   // Use a temp file approach for reliability
   const tmpFile = `/tmp/skynet_fix_${Date.now()}`;
   await writeFile(sandbox, tmpFile, newContent);
@@ -122,16 +141,14 @@ export async function commitAndPush(
     throw new Error(`Commit failed: ${commitResult.stdout}`);
   }
 
-  // Set remote URL with token and push
-  // Build the authenticated URL by reading current remote and injecting token
+  // Set remote URL with token and push.
   const remoteResult = await exec(sandbox, `cd "${worktreePath}" && git remote get-url origin`);
   const currentRemote = remoteResult.stdout.trim();
-  const authedRemote = currentRemote.replace("https://", `https://x-access-token:${token}@`);
-  await exec(
-    sandbox,
-    `cd "${worktreePath}" && git remote set-url origin "${authedRemote}" 2>&1`,
-  );
+  const authedRemote = buildAuthedRemoteUrl(currentRemote, token);
+
+  await exec(sandbox, `cd "${worktreePath}" && git remote set-url origin "${authedRemote}" 2>&1`);
   const pushResult = await exec(sandbox, `cd "${worktreePath}" && git push -u origin HEAD 2>&1`, 60);
+  await exec(sandbox, `cd "${worktreePath}" && git remote set-url origin "${currentRemote}" 2>&1`);
   if (pushResult.exitCode !== 0) {
     throw new Error(`Push failed: ${pushResult.stdout}`);
   }
@@ -139,4 +156,25 @@ export async function commitAndPush(
   // Get commit SHA
   const shaResult = await exec(sandbox, `cd "${worktreePath}" && git rev-parse HEAD`);
   return { sha: shaResult.stdout.trim() };
+}
+
+/**
+ * Push current HEAD branch without creating a new commit.
+ * Useful when the coding tool already committed changes.
+ */
+export async function pushCurrentBranch(
+  sandbox: SandboxClient,
+  worktreePath: string,
+  token: string,
+): Promise<void> {
+  const remoteResult = await exec(sandbox, `cd "${worktreePath}" && git remote get-url origin`);
+  const currentRemote = remoteResult.stdout.trim();
+  const authedRemote = buildAuthedRemoteUrl(currentRemote, token);
+
+  await exec(sandbox, `cd "${worktreePath}" && git remote set-url origin "${authedRemote}" 2>&1`);
+  const pushResult = await exec(sandbox, `cd "${worktreePath}" && git push -u origin HEAD 2>&1`, 60);
+  await exec(sandbox, `cd "${worktreePath}" && git remote set-url origin "${currentRemote}" 2>&1`);
+  if (pushResult.exitCode !== 0) {
+    throw new Error(`Push failed: ${pushResult.stdout}`);
+  }
 }
