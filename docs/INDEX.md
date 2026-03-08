@@ -17,6 +17,7 @@ Complete documentation for the AI-Native Development Platform MVP.
 | [architecture/engineering-principles.md](architecture/engineering-principles.md) | Long-term engineering principles and governance |
 | [architecture/project-structure.md](architecture/project-structure.md) | File organization and project layout |
 | [architecture/rules-files.md](architecture/rules-files.md) | AGENTS.md and rules file structure (Claude Code skills pattern) |
+| [architecture/openclaw-nanoclaw-evaluation.md](architecture/openclaw-nanoclaw-evaluation.md) | NanoClaw/OpenClaw discussion draft: observe-act loops and feedback UI |
 | [architecture/adr/0001-workspace-monorepo.md](architecture/adr/0001-workspace-monorepo.md) | ADR: workspace monorepo layout |
 
 ## Data Model
@@ -58,6 +59,7 @@ docs/
 │   ├── ai-behavior.md    # AI behavior spec
 │   ├── engineering-principles.md # Long-term engineering principles
 │   ├── project-structure.md # File organization
+│   ├── openclaw-nanoclaw-evaluation.md # Agent platform evaluation and migration options
 │   └── adr/
 │       └── 0001-workspace-monorepo.md
 ├── data-model/
